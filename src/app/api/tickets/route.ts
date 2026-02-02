@@ -108,25 +108,24 @@ export async function POST(request: Request) {
             )
         }
 
-        // Ensure user exists in database
-        let dbUser = await prisma.user.findUnique({
+        // Ensure user exists in database (use upsert to avoid unique constraint errors)
+        const dbUser = await prisma.user.upsert({
             where: { id: authUser.id },
+            update: {
+                // Update email and name if they changed
+                email: authUser.email!,
+                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+            },
+            create: {
+                id: authUser.id,
+                email: authUser.email!,
+                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                password: '',
+                role: 'BUYER',
+            },
         })
 
-        if (!dbUser) {
-            console.log('User not found in database, creating user:', authUser.id)
-            // Create user if doesn't exist
-            dbUser = await prisma.user.create({
-                data: {
-                    id: authUser.id,
-                    email: authUser.email!,
-                    name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-                    password: '',
-                    role: 'BUYER',
-                },
-            })
-            console.log('User created successfully:', dbUser.id)
-        }
+        console.log('User ensured in database:', dbUser.id)
 
         const ticket = await prisma.ticket.create({
             data: {
