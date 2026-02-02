@@ -436,6 +436,23 @@ NEXT_PUBLIC_APP_URL=https://your-app.vercel.app
 
 ---
 
+## 🧪 Testing
+
+We maintain a comprehensive End-to-End (E2E) test suite using **Playwright** in a separate repository to ensure the reliability and security of the platform.
+
+**Test Repository:** [secure-ticket-platform-tests](https://github.com/GabrielSalazar/secure-ticket-platform-tests)
+
+### Test Coverage
+- **Authentication Flows**: Registration, Login, Logout, Session management
+- **Critical Operations**: Ticket selling process, Event creation
+- **Route Protection**: Security checks for protected pages
+- **User Dashboard**: Data display and interaction
+- **Navigation**: Site-wide navigation and responsiveness
+
+To run the tests locally or against production, please refer to the [Test Repository README](https://github.com/GabrielSalazar/secure-ticket-platform-tests#readme).
+
+---
+
 ## 🔒 Security Features
 
 ### Implemented

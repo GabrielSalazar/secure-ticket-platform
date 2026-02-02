@@ -36,7 +36,7 @@ export default function RegisterPage() {
             })
 
             if (signUpError) {
-                setError(signUpError.message)
+                setError(translateAuthError(signUpError.message))
                 setLoading(false)
                 return
             }
@@ -51,7 +51,8 @@ export default function RegisterPage() {
                     body: JSON.stringify({
                         email,
                         name,
-                        password: '', // Not needed, managed by Supabase
+                        password, // Send password as backup for API fallback logic
+                        userId: data.user.id
                     }),
                 })
 
@@ -71,6 +72,14 @@ export default function RegisterPage() {
             setLoading(false)
         }
     }
+
+    function translateAuthError(error: string) {
+        if (error.includes("rate limit")) return "Muitas tentativas. Por favor, aguarde um momento."
+        if (error.includes("already registered")) return "Este email já está cadastrado."
+        if (error.includes("Password should be")) return "A senha deve ter pelo menos 6 caracteres."
+        return "Ocorreu um erro ao criar a conta. Tente novamente."
+    }
+
 
     return (
         <div className="min-h-screen flex flex-col">

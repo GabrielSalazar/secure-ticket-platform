@@ -29,7 +29,7 @@ export default function LoginPage() {
             })
 
             if (error) {
-                setError(error.message)
+                setError(translateAuthError(error.message))
             } else {
                 router.push("/")
                 router.refresh()
@@ -39,6 +39,12 @@ export default function LoginPage() {
         } finally {
             setLoading(false)
         }
+    }
+
+    function translateAuthError(error: string) {
+        if (error.includes("Invalid login credentials")) return "Email ou senha incorretos."
+        if (error.includes("rate limit")) return "Muitas tentativas. Por favor, aguarde um momento."
+        return "Ocorreu um erro ao fazer login. Tente novamente."
     }
 
     return (

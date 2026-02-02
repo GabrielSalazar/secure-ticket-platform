@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Ticket, Search, User, LogOut } from "lucide-react"
+import { Ticket, Search, User, LogOut, Menu } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { User as SupabaseUser } from "@supabase/supabase-js"
@@ -14,6 +14,13 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import {
+    Sheet,
+    SheetContent,
+    SheetHeader,
+    SheetTitle,
+    SheetTrigger,
+} from "@/components/ui/sheet"
 import { useRouter } from "next/navigation"
 
 export function Header() {
@@ -113,6 +120,46 @@ export function Header() {
                             </Button>
                         </>
                     )}
+
+                    <Sheet>
+                        <SheetTrigger asChild>
+                            <Button variant="ghost" size="icon" className="md:hidden">
+                                <Menu className="h-5 w-5" />
+                                <span className="sr-only">Menu</span>
+                            </Button>
+                        </SheetTrigger>
+                        <SheetContent side="left">
+                            <SheetHeader>
+                                <SheetTitle>Menu</SheetTitle>
+                            </SheetHeader>
+                            <div className="flex flex-col gap-4 py-4">
+                                <nav className="flex flex-col gap-2">
+                                    <Link href="/events" className="flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
+                                        <Ticket className="h-5 w-5" />
+                                        Eventos
+                                    </Link>
+                                    <Link href="/sell" className="flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
+                                        <Ticket className="h-5 w-5 rotate-45" />
+                                        Vender Ingressos
+                                    </Link>
+                                    <Link href="/how-it-works" className="flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
+                                        <Search className="h-5 w-5" />
+                                        Como Funciona
+                                    </Link>
+                                </nav>
+                                {!user && (
+                                    <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
+                                        <Button className="w-full" asChild>
+                                            <Link href="/login">Entrar</Link>
+                                        </Button>
+                                        <Button variant="outline" className="w-full" asChild>
+                                            <Link href="/register">Criar Conta</Link>
+                                        </Button>
+                                    </div>
+                                )}
+                            </div>
+                        </SheetContent>
+                    </Sheet>
                 </div>
             </div>
         </header>
