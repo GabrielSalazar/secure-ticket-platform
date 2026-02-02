@@ -28,6 +28,7 @@ model User {
   tickets      Ticket[] @relation("TicketSeller")
   purchases    Transaction[] @relation("BuyerTransactions")
   sales        Transaction[] @relation("SellerTransactions")
+  payouts      Payout[]
 }
 
 model Event {
@@ -124,4 +125,26 @@ enum EventCategory {
   COMEDY
   CONFERENCE
   OTHER
+}
+
+model Payout {
+  id          String       @id @default(cuid())
+  amount      Float
+  status      PayoutStatus @default(PENDING)
+  userId      String
+  pixKey      String
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  user        User         @relation(fields: [userId], references: [id])
+}
+
+enum PayoutStatus {
+  PENDING
+  PROCESSING
+  PAID
+  FAILED
+  REJECTED
 }
