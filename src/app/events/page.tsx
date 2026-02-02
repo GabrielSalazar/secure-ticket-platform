@@ -5,6 +5,10 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, SlidersHorizontal } from "lucide-react"
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
+
 async function getEvents() {
     try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/events`, {

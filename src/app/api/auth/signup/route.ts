@@ -22,6 +22,15 @@ export async function POST(request: Request) {
     }
 
     try {
+        // Check if user already exists in database
+        const existingUser = await prisma.user.findUnique({
+            where: { id: authData.user.id },
+        })
+
+        if (existingUser) {
+            return NextResponse.json({ user: existingUser }, { status: 200 })
+        }
+
         // Create user in our database
         const user = await prisma.user.create({
             data: {
@@ -36,8 +45,6 @@ export async function POST(request: Request) {
         return NextResponse.json({ user }, { status: 201 })
     } catch (error) {
         console.error('Error creating user in database:', error)
-        // If database creation fails, we should ideally delete the Supabase user
-        // but for now we'll just return an error
         return NextResponse.json(
             { error: 'Failed to create user profile' },
             { status: 500 }
