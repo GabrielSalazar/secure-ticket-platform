@@ -75,6 +75,29 @@ export default function ProfilePage() {
         }
     }
 
+    const handleManageCards = async () => {
+        setIsLoading(true)
+        try {
+            const response = await fetch('/api/stripe/portal', {
+                method: 'POST',
+            })
+            const data = await response.json()
+            if (data.url) {
+                window.location.href = data.url
+            } else {
+                throw new Error('Falha ao redirecionar')
+            }
+        } catch (error) {
+            console.error(error)
+            toast({
+                title: 'Erro',
+                description: 'Não foi possível acessar o portal de cartões.',
+                variant: 'destructive',
+            })
+            setIsLoading(false)
+        }
+    }
+
     if (isLoading) {
         return (
             <div className="flex justify-center items-center min-h-[60vh]">
@@ -144,7 +167,13 @@ export default function ProfilePage() {
                                 <span className="text-sm text-muted-foreground">
                                     Gerenciado com segurança pelo Stripe
                                 </span>
-                                <Button variant="outline" size="sm" type="button" disabled>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    type="button"
+                                    onClick={handleManageCards}
+                                    disabled={isLoading}
+                                >
                                     Gerenciar Cartões
                                 </Button>
                             </div>

@@ -1,20 +1,3 @@
-
-import { Footer } from "@/components/layout/footer";
-import { Header } from "@/components/layout/header";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { TicketActions } from "@/components/tickets/ticket-actions";
-import { getSoldTickets } from "@/data/tickets";
-import { createClient } from "@/lib/supabase/server";
-import { Calendar, DollarSign, MapPin, Ticket as TicketIcon } from "lucide-react";
-import Link from "next/link";
-import { redirect } from "next/navigation";
-import { ManagementFilters } from "@/components/shared/management-filters";
-
-interface PageProps {
-    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
-}
-
 import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { Badge } from "@/components/ui/badge";
