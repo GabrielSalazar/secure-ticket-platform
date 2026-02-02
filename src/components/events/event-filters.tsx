@@ -15,6 +15,15 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { SlidersHorizontal } from 'lucide-react'
 
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/components/ui/select'
+import { Switch } from '@/components/ui/switch'
+
 interface EventFiltersProps {
     onApplyFilters: (filters: FilterValues) => void
     currentFilters: FilterValues
@@ -25,6 +34,9 @@ export interface FilterValues {
     dateTo: string
     minPrice: string
     maxPrice: string
+    category: string
+    city: string
+    verified: boolean
 }
 
 export function EventFilters({ onApplyFilters, currentFilters }: EventFiltersProps) {
@@ -42,13 +54,16 @@ export function EventFilters({ onApplyFilters, currentFilters }: EventFiltersPro
             dateTo: '',
             minPrice: '',
             maxPrice: '',
+            category: 'ALL',
+            city: '',
+            verified: false,
         }
         setFilters(emptyFilters)
         onApplyFilters(emptyFilters)
         setIsOpen(false)
     }
 
-    const hasActiveFilters = Object.values(currentFilters).some(v => v !== '')
+    const hasActiveFilters = Object.values(currentFilters).some(v => v !== '' && v !== 'ALL' && v !== false)
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -56,7 +71,7 @@ export function EventFilters({ onApplyFilters, currentFilters }: EventFiltersPro
                 <Button
                     variant="outline"
                     size="icon"
-                    className={hasActiveFilters ? 'border-primary' : ''}
+                    className={hasActiveFilters ? 'border-primary bg-primary/5' : ''}
                 >
                     <SlidersHorizontal className="h-4 w-4" />
                 </Button>
@@ -68,7 +83,40 @@ export function EventFilters({ onApplyFilters, currentFilters }: EventFiltersPro
                         Refine sua busca usando os filtros abaixo.
                     </DialogDescription>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
+                <div className="grid gap-5 py-4">
+                    <div className="space-y-2">
+                        <Label>Categoria</Label>
+                        <Select
+                            value={filters.category}
+                            onValueChange={(value) => setFilters({ ...filters, category: value })}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Todas as categorias" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="ALL">Todas as categorias</SelectItem>
+                                <SelectItem value="SHOW">Show</SelectItem>
+                                <SelectItem value="CONCERT">Concerto</SelectItem>
+                                <SelectItem value="FESTIVAL">Festival</SelectItem>
+                                <SelectItem value="SPORTS">Esporte</SelectItem>
+                                <SelectItem value="THEATER">Teatro</SelectItem>
+                                <SelectItem value="COMEDY">Comédia</SelectItem>
+                                <SelectItem value="CONFERENCE">Conferencia</SelectItem>
+                                <SelectItem value="OTHER">Outros</SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="city">Cidade</Label>
+                        <Input
+                            id="city"
+                            placeholder="Ex: São Paulo, Rio de Janeiro..."
+                            value={filters.city}
+                            onChange={(e) => setFilters({ ...filters, city: e.target.value })}
+                        />
+                    </div>
+
                     <div className="space-y-2">
                         <Label>Período do Evento</Label>
                         <div className="grid grid-cols-2 gap-2">
@@ -130,10 +178,24 @@ export function EventFilters({ onApplyFilters, currentFilters }: EventFiltersPro
                             </div>
                         </div>
                     </div>
+
+                    <div className="flex items-center justify-between">
+                        <div className="space-y-0.5">
+                            <Label htmlFor="verified">Apenas Verificados</Label>
+                            <p className="text-xs text-muted-foreground">
+                                Mostrar apenas eventos oficiais e verificados.
+                            </p>
+                        </div>
+                        <Switch
+                            id="verified"
+                            checked={filters.verified}
+                            onCheckedChange={(checked: boolean) => setFilters({ ...filters, verified: checked })}
+                        />
+                    </div>
                 </div>
                 <DialogFooter className="flex-col sm:flex-row gap-2">
                     <Button variant="outline" onClick={handleClear} className="w-full sm:w-auto">
-                        Limpar Filtros
+                        Limpar
                     </Button>
                     <Button onClick={handleApply} className="w-full sm:w-auto">
                         Aplicar Filtros

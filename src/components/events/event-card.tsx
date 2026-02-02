@@ -31,6 +31,19 @@ export function EventCard({ event }: EventCardProps) {
                     {event.title}
                 </div>
                 {/* Availability Badge */}
+                <div className="absolute top-2 left-2 flex flex-col gap-1">
+                    {event.verified && (
+                        <Badge className="bg-blue-500 hover:bg-blue-600 border-none text-[10px] h-5">
+                            Verificado
+                        </Badge>
+                    )}
+                    {event.category && event.category !== 'OTHER' && (
+                        <Badge variant="outline" className="bg-background/80 backdrop-blur-sm text-[10px] h-5 uppercase">
+                            {event.category}
+                        </Badge>
+                    )}
+                </div>
+
                 {isSoldOut && (
                     <Badge variant="secondary" className="absolute top-2 right-2 bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400">
                         Esgotado
@@ -54,7 +67,11 @@ export function EventCard({ event }: EventCardProps) {
                         </div>
                         <div className="flex items-center text-xs text-muted-foreground gap-1">
                             <MapPin className="h-3 w-3" />
-                            <span className="line-clamp-1">{event.location}</span>
+                            <span className="line-clamp-1">
+                                {event.location}
+                                {event.city && ` - ${event.city}`}
+                                {event.state && `, ${event.state}`}
+                            </span>
                         </div>
                         {!isSoldOut && (
                             <div className="flex items-center text-xs text-muted-foreground gap-1">

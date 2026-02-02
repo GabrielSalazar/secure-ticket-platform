@@ -41,6 +41,15 @@ model Event {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  // API Integration fields
+  source      EventSource @default(MANUAL)
+  externalId  String?     @unique
+  verified    Boolean     @default(false)
+  category    EventCategory @default(OTHER)
+  city        String?
+  state       String?
+  venue       String?
+
   // Relations
   organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id])
   tickets     Ticket[]
@@ -97,4 +106,22 @@ enum TransactionStatus {
   COMPLETED
   FAILED
   REFUNDED
+}
+
+enum EventSource {
+  MANUAL
+  EVENTBRITE
+  TICKETMASTER
+  SYMPLA
+}
+
+enum EventCategory {
+  SHOW
+  CONCERT
+  FESTIVAL
+  SPORTS
+  THEATER
+  COMEDY
+  CONFERENCE
+  OTHER
 }

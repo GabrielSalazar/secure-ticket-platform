@@ -9,6 +9,9 @@ export async function GET(request: NextRequest) {
         const dateTo = searchParams.get('dateTo')
         const minPrice = searchParams.get('minPrice')
         const maxPrice = searchParams.get('maxPrice')
+        const category = searchParams.get('category')
+        const city = searchParams.get('city')
+        const verifiedOnly = searchParams.get('verified') === 'true'
         const sortBy = searchParams.get('sortBy') || 'date' // date, price, availability
 
         // Build where clause for filtering
@@ -20,7 +23,23 @@ export async function GET(request: NextRequest) {
                 { title: { contains: search, mode: 'insensitive' } },
                 { description: { contains: search, mode: 'insensitive' } },
                 { location: { contains: search, mode: 'insensitive' } },
+                { city: { contains: search, mode: 'insensitive' } },
             ]
+        }
+
+        // Category filter
+        if (category && category !== 'ALL') {
+            where.category = category
+        }
+
+        // City filter
+        if (city) {
+            where.city = { contains: city, mode: 'insensitive' }
+        }
+
+        // Verified filter
+        if (verifiedOnly) {
+            where.verified = true
         }
 
         // Date range filter

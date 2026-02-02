@@ -20,6 +20,9 @@ export default function EventsPage() {
         dateTo: '',
         minPrice: '',
         maxPrice: '',
+        category: 'ALL',
+        city: '',
+        verified: false,
     })
 
     const fetchEvents = async () => {
@@ -32,6 +35,9 @@ export default function EventsPage() {
             if (filters.dateTo) params.append('dateTo', filters.dateTo)
             if (filters.minPrice) params.append('minPrice', filters.minPrice)
             if (filters.maxPrice) params.append('maxPrice', filters.maxPrice)
+            if (filters.category && filters.category !== 'ALL') params.append('category', filters.category)
+            if (filters.city) params.append('city', filters.city)
+            if (filters.verified) params.append('verified', 'true')
             if (sortBy) params.append('sortBy', sortBy)
 
             const queryString = params.toString()
@@ -67,7 +73,11 @@ export default function EventsPage() {
         setFilters(newFilters)
     }
 
-    const activeFiltersCount = Object.values(filters).filter(v => v !== '').length
+    const activeFiltersCount = Object.entries(filters).filter(([key, value]) => {
+        if (key === 'category') return value !== 'ALL'
+        if (key === 'verified') return value === true
+        return value !== ''
+    }).length
 
     return (
         <div className="min-h-screen flex flex-col">
