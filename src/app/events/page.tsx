@@ -1,33 +1,67 @@
+'use client'
+
+import { useState, useEffect } from 'react'
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { EventCard } from "@/components/events/event-card"
+import { EventFilters, FilterValues } from "@/components/events/event-filters"
 import { Input } from "@/components/ui/input"
-import { Button } from "@/components/ui/button"
-import { Search, SlidersHorizontal } from "lucide-react"
+import { Search, Loader2 } from "lucide-react"
 
-// Force dynamic rendering
-export const dynamic = 'force-dynamic'
+export default function EventsPage() {
+    const [events, setEvents] = useState<any[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchQuery, setSearchQuery] = useState('')
+    const [filters, setFilters] = useState<FilterValues>({
+        dateFrom: '',
+        dateTo: '',
+        minPrice: '',
+        maxPrice: '',
+    })
 
+    const fetchEvents = async () => {
+        setLoading(true)
+        try {
+            const params = new URLSearchParams()
 
-async function getEvents() {
-    try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/events`, {
-            cache: 'no-store', // Always fetch fresh data
-        })
+            if (searchQuery) params.append('search', searchQuery)
+            if (filters.dateFrom) params.append('dateFrom', filters.dateFrom)
+            if (filters.dateTo) params.append('dateTo', filters.dateTo)
+            if (filters.minPrice) params.append('minPrice', filters.minPrice)
+            if (filters.maxPrice) params.append('maxPrice', filters.maxPrice)
 
-        if (!res.ok) {
-            throw new Error('Failed to fetch events')
+            const queryString = params.toString()
+            const url = `/api/events${queryString ? `?${queryString}` : ''}`
+
+            const res = await fetch(url, {
+                cache: 'no-store',
+            })
+
+            if (!res.ok) {
+                throw new Error('Failed to fetch events')
+            }
+
+            const data = await res.json()
+            setEvents(data)
+        } catch (error) {
+            console.error('Error fetching events:', error)
+            setEvents([])
+        } finally {
+            setLoading(false)
         }
-
-        return res.json()
-    } catch (error) {
-        console.error('Error fetching events:', error)
-        return []
     }
-}
 
-export default async function EventsPage() {
-    const events = await getEvents()
+    useEffect(() => {
+        fetchEvents()
+    }, [searchQuery, filters])
+
+    const handleSearch = (value: string) => {
+        setSearchQuery(value)
+    }
+
+    const handleApplyFilters = (newFilters: FilterValues) => {
+        setFilters(newFilters)
+    }
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -46,17 +80,28 @@ export default async function EventsPage() {
                                     type="search"
                                     placeholder="Buscar eventos, artistas ou locais..."
                                     className="pl-8"
+                                    value={searchQuery}
+                                    onChange={(e) => handleSearch(e.target.value)}
                                 />
                             </div>
-                            <Button variant="outline" size="icon">
-                                <SlidersHorizontal className="h-4 w-4" />
-                            </Button>
+                            <EventFilters
+                                onApplyFilters={handleApplyFilters}
+                                currentFilters={filters}
+                            />
                         </div>
                     </div>
 
-                    {events.length === 0 ? (
+                    {loading ? (
+                        <div className="flex items-center justify-center py-12">
+                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        </div>
+                    ) : events.length === 0 ? (
                         <div className="text-center py-12">
-                            <p className="text-muted-foreground">Nenhum evento disponível no momento.</p>
+                            <p className="text-muted-foreground">
+                                {searchQuery || Object.values(filters).some(v => v !== '')
+                                    ? 'Nenhum evento encontrado com os filtros aplicados.'
+                                    : 'Nenhum evento disponível no momento.'}
+                            </p>
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">

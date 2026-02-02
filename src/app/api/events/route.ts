@@ -1,9 +1,40 @@
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
-export async function GET() {
+export async function GET(request: NextRequest) {
     try {
+        const searchParams = request.nextUrl.searchParams
+        const search = searchParams.get('search')
+        const dateFrom = searchParams.get('dateFrom')
+        const dateTo = searchParams.get('dateTo')
+        const minPrice = searchParams.get('minPrice')
+        const maxPrice = searchParams.get('maxPrice')
+
+        // Build where clause for filtering
+        const where: any = {}
+
+        // Search in title, description, and location
+        if (search) {
+            where.OR = [
+                { title: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } },
+                { location: { contains: search, mode: 'insensitive' } },
+            ]
+        }
+
+        // Date range filter
+        if (dateFrom || dateTo) {
+            where.date = {}
+            if (dateFrom) {
+                where.date.gte = new Date(dateFrom)
+            }
+            if (dateTo) {
+                where.date.lte = new Date(dateTo)
+            }
+        }
+
         const events = await prisma.event.findMany({
+            where,
             include: {
                 organizer: {
                     select: {
@@ -28,14 +59,24 @@ export async function GET() {
             },
         })
 
-        // Calculate min price for each event
-        const eventsWithMinPrice = events.map((event) => ({
+        // Calculate min price for each event and apply price filter
+        let eventsWithMinPrice = events.map((event) => ({
             ...event,
             minPrice: event.tickets.length > 0
                 ? Math.min(...event.tickets.map((t) => t.price))
                 : null,
             availableTickets: event.tickets.length,
         }))
+
+        // Filter by price range (client-side since it depends on ticket prices)
+        if (minPrice || maxPrice) {
+            eventsWithMinPrice = eventsWithMinPrice.filter((event) => {
+                if (event.minPrice === null) return false
+                if (minPrice && event.minPrice < parseFloat(minPrice)) return false
+                if (maxPrice && event.minPrice > parseFloat(maxPrice)) return false
+                return true
+            })
+        }
 
         return NextResponse.json(eventsWithMinPrice)
     } catch (error) {
