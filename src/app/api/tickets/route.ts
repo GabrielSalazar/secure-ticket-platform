@@ -108,42 +108,26 @@ export async function POST(request: Request) {
             )
         }
 
-        // Ensure user exists in database
-        let dbUser = await prisma.user.findUnique({
+        // Verify user exists in database (should already exist from auth)
+        const dbUser = await prisma.user.findUnique({
             where: { id: authUser.id },
         })
 
         if (!dbUser) {
-            try {
-                // Try to create user
-                dbUser = await prisma.user.create({
-                    data: {
-                        id: authUser.id,
-                        email: authUser.email!,
-                        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-                        password: '',
-                        role: 'BUYER',
-                    },
-                })
-                console.log('User created successfully:', dbUser.id)
-            } catch (createError: any) {
-                // If user creation fails due to unique constraint, try to find by email
-                if (createError.code === 'P2002') {
-                    console.log('User with this email already exists, fetching existing user')
-                    dbUser = await prisma.user.findUnique({
-                        where: { email: authUser.email! },
-                    })
-
-                    if (!dbUser) {
-                        throw new Error('Failed to create or find user')
-                    }
-                } else {
-                    throw createError
-                }
-            }
+            console.error('User not found in database:', authUser.id)
+            return NextResponse.json(
+                { error: 'User not found. Please logout and login again.' },
+                { status: 400 }
+            )
         }
 
-        console.log('User ensured in database:', dbUser.id)
+        console.log('User verified in database:', dbUser.id)
+
+        console.log('Creating ticket with:', {
+            eventId,
+            sellerId: authUser.id,
+            price: parsedPrice,
+        })
 
         const ticket = await prisma.ticket.create({
             data: {
@@ -184,8 +168,10 @@ export async function POST(request: Request) {
 
         // Provide more specific error messages
         if (error.code === 'P2003') {
+            const field = error.meta?.field_name || 'unknown'
+            console.error('Foreign key constraint failed on:', field)
             return NextResponse.json(
-                { error: 'Invalid event ID or user ID' },
+                { error: `Invalid ${field.includes('event') ? 'event' : 'user'} ID` },
                 { status: 400 }
             )
         }
