@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
 import { Calendar, MapPin, ShieldCheck, AlertCircle } from "lucide-react"
 import { ShareEvent } from "@/components/events/share-event"
+import { PurchaseButton } from "@/components/events/purchase-button"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 
@@ -124,7 +125,15 @@ export default async function EventPage({ params }: PageProps) {
                                                 <div className="text-right">
                                                     <div className="text-xl font-bold">R$ {ticket.price.toFixed(2)}</div>
                                                 </div>
-                                                <Button>Comprar</Button>
+                                                <PurchaseButton
+                                                    ticketId={ticket.id}
+                                                    price={ticket.price}
+                                                    section={ticket.section}
+                                                    row={ticket.row}
+                                                    seat={ticket.seat}
+                                                    eventTitle={event.title}
+                                                    sellerName={ticket.seller?.name}
+                                                />
                                             </div>
                                         </CardContent>
                                     </Card>
