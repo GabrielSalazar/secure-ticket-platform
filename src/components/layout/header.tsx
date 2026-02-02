@@ -90,6 +90,9 @@ export function Header() {
                                 <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem asChild>
+                                    <Link href="/profile">Meu Perfil</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
                                     <Link href="/dashboard">Dashboard</Link>
                                 </DropdownMenuItem>
                                 <DropdownMenuItem asChild>

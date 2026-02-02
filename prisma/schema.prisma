@@ -29,6 +29,11 @@ model User {
   purchases    Transaction[] @relation("BuyerTransactions")
   sales        Transaction[] @relation("SellerTransactions")
   payouts      Payout[]
+  
+  // Profile Fields
+  phone             String?
+  pixKey            String?  // Default PIX key for payouts
+  stripeCustomerId  String?  // For saved cards
 }
 
 model Event {

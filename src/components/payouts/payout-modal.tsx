@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import {
     Dialog,
@@ -72,6 +72,20 @@ export function PayoutModal({ availableBalance }: PayoutModalProps) {
             setIsLoading(false)
         }
     }
+
+    // Auto-fill PIX key from profile when modal opens
+    useEffect(() => {
+        if (open) {
+            fetch('/api/users/profile')
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.pixKey) {
+                        setPixKey(data.pixKey)
+                    }
+                })
+                .catch(err => console.error('Error fetching profile:', err))
+        }
+    }, [open])
 
     return (
         <Dialog open={open} onOpenChange={setOpen}>
