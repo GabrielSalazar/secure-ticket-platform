@@ -114,32 +114,39 @@ export async function POST(request: Request) {
         })
 
         if (!dbUser) {
-            console.log('User not found in database, creating...')
+            console.log('User not found in database, attempting to create...')
 
-            // Try to find by email first
-            const existingUser = await prisma.user.findUnique({
-                where: { email: authUser.email! }
-            })
-
-            if (existingUser && existingUser.id !== authUser.id) {
-                console.log('Found user by email with different ID, updating...')
-                // Delete old user and create new one with correct ID
-                await prisma.user.delete({
-                    where: { id: existingUser.id }
+            try {
+                // Create user with Supabase ID
+                dbUser = await prisma.user.create({
+                    data: {
+                        id: authUser.id,
+                        email: authUser.email!,
+                        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                        password: '', // Empty password since we use Supabase auth
+                        role: 'BUYER',
+                    }
                 })
-            }
+                console.log('User created successfully:', dbUser.id)
+            } catch (createError: any) {
+                // If user creation fails due to unique constraint (user already exists with this email)
+                if (createError.code === 'P2002') {
+                    console.log('User already exists, trying to find by email...')
+                    // Try to find by email
+                    const existingUser = await prisma.user.findUnique({
+                        where: { email: authUser.email! }
+                    })
 
-            // Create user
-            dbUser = await prisma.user.create({
-                data: {
-                    id: authUser.id,
-                    email: authUser.email!,
-                    name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-                    password: '',
-                    role: 'BUYER',
+                    if (existingUser) {
+                        console.log('Found existing user by email, using it')
+                        dbUser = existingUser
+                    } else {
+                        throw new Error('Não foi possível criar ou encontrar usuário. Por favor, faça logout e login novamente.')
+                    }
+                } else {
+                    throw createError
                 }
-            })
-            console.log('User created successfully:', dbUser.id)
+            }
         }
 
         console.log('User verified in database:', dbUser.id)
