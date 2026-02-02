@@ -106,10 +106,24 @@ export default async function MyTicketsPage({ searchParams }: PageProps) {
                                         </div>
 
                                         <div className="mt-auto pt-2">
-                                            <Button className="w-full" variant="outline">
-                                                <TicketIcon className="mr-2 h-4 w-4" />
-                                                Ver Ingresso (QR)
+                                            <Button className="w-full" variant="outline" asChild>
+                                                <Link href={`/tickets/${ticket.id}/view`}>
+                                                    <TicketIcon className="mr-2 h-4 w-4" />
+                                                    Ver Ingresso (QR)
+                                                </Link>
                                             </Button>
+
+                                            {ticket.status === 'SOLD' && (
+                                                <Button
+                                                    className="w-full text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20"
+                                                    variant="ghost"
+                                                    asChild
+                                                >
+                                                    <Link href={`/help/dispute/${ticket.transactionId}`}>
+                                                        Reportar Problema
+                                                    </Link>
+                                                </Button>
+                                            )}
                                         </div>
                                     </div>
                                 </div>

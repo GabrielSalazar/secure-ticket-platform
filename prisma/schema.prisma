@@ -29,6 +29,7 @@ model User {
   purchases    Transaction[] @relation("BuyerTransactions")
   sales        Transaction[] @relation("SellerTransactions")
   payouts      Payout[]
+  disputes     Dispute[] 
   
   // Profile Fields
   phone             String?
@@ -86,6 +87,11 @@ model Transaction {
   ticketId    String   @unique
   buyerId     String
   sellerId    String
+  
+  // Stripe References for Refunds
+  stripeSessionId   String?
+  stripePaymentIntentId String?
+
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -93,6 +99,26 @@ model Transaction {
   ticket      Ticket   @relation(fields: [ticketId], references: [id])
   buyer       User     @relation("BuyerTransactions", fields: [buyerId], references: [id])
   seller      User     @relation("SellerTransactions", fields: [sellerId], references: [id])
+  dispute     Dispute?
+}
+
+model Dispute {
+  id            String        @id @default(cuid())
+  reason        DisputeReason
+  description   String
+  status        DisputeStatus @default(OPEN)
+  
+  transactionId String        @unique
+  openerId      String
+  
+  adminNotes    String?
+  stripeRefundId String?
+
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  transaction   Transaction   @relation(fields: [transactionId], references: [id])
+  opener        User          @relation(fields: [openerId], references: [id])
 }
 
 enum Role {
@@ -130,6 +156,18 @@ enum EventCategory {
   COMEDY
   CONFERENCE
   OTHER
+}
+
+enum DisputeReason {
+  INVALID_TICKET
+  EVENT_CANCELLED
+  OTHER
+}
+
+enum DisputeStatus {
+  OPEN
+  RESOLVED_REFUNDED
+  REJECTED
 }
 
 model Payout {
