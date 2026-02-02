@@ -43,8 +43,8 @@ export async function createCheckoutSession(
     const stripe = getStripe()
     try {
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card'], // Stripe handles PIX automatically in BRL currency if enabled in dashboard, but we can be explicit if needed. 
-            // Note: For PIX to work, 'boleto' and 'pix' must be enabled in the Stripe Dashboard settings.
+            payment_method_types: ['card', 'pix'],
+            // Note: For PIX to work, it must be enabled in the Stripe Dashboard settings under Payment Methods.
             line_items: [
                 {
                     price_data: {
