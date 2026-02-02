@@ -1,12 +1,30 @@
 import { Header } from "@/components/layout/header"
 import { Footer } from "@/components/layout/footer"
 import { EventCard } from "@/components/events/event-card"
-import { MOCK_EVENTS } from "@/data/events"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Search, SlidersHorizontal } from "lucide-react"
 
-export default function EventsPage() {
+async function getEvents() {
+    try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/events`, {
+            cache: 'no-store', // Always fetch fresh data
+        })
+
+        if (!res.ok) {
+            throw new Error('Failed to fetch events')
+        }
+
+        return res.json()
+    } catch (error) {
+        console.error('Error fetching events:', error)
+        return []
+    }
+}
+
+export default async function EventsPage() {
+    const events = await getEvents()
+
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
@@ -32,11 +50,17 @@ export default function EventsPage() {
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {MOCK_EVENTS.map((event) => (
-                            <EventCard key={event.id} event={event} />
-                        ))}
-                    </div>
+                    {events.length === 0 ? (
+                        <div className="text-center py-12">
+                            <p className="text-muted-foreground">Nenhum evento disponível no momento.</p>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                            {events.map((event: any) => (
+                                <EventCard key={event.id} event={event} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </main>
             <Footer />

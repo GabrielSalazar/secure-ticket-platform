@@ -1,12 +1,11 @@
 import Link from "next/link"
-import { Calendar, MapPin, Ticket } from "lucide-react"
-import { Event } from "@/data/events"
+import { Calendar, MapPin } from "lucide-react"
 import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 
 interface EventCardProps {
-    event: Event
+    event: any
 }
 
 export function EventCard({ event }: EventCardProps) {
@@ -27,11 +26,6 @@ export function EventCard({ event }: EventCardProps) {
                 {/* Placeholder for Image */}
                 <div className="absolute inset-0 flex items-center justify-center bg-secondary text-muted-foreground group-hover:scale-105 transition-transform duration-300">
                     {event.title}
-                </div>
-                <div className="absolute top-2 right-2">
-                    <Badge variant="secondary" className="backdrop-blur-md bg-background/50">
-                        {event.category}
-                    </Badge>
                 </div>
             </div>
             <CardContent className="p-4">
@@ -55,7 +49,7 @@ export function EventCard({ event }: EventCardProps) {
                 <div className="flex flex-col">
                     <span className="text-xs text-muted-foreground">A partir de</span>
                     <span className="font-bold text-lg">
-                        {event.priceRange.min === 0 ? "Grátis" : `R$ ${event.priceRange.min}`}
+                        {!event.minPrice || event.minPrice === 0 ? "Grátis" : `R$ ${event.minPrice.toFixed(2)}`}
                     </span>
                 </div>
                 <Button size="sm" asChild>
