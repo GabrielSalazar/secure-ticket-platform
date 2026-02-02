@@ -69,6 +69,21 @@ export async function POST() {
         })
     } catch (error: any) {
         console.error('Error syncing user:', error)
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            meta: error.meta,
+        })
+
+        // Handle specific Prisma errors
+        if (error.code === 'P2002') {
+            // Unique constraint violation
+            console.error('Unique constraint violation:', error.meta)
+            return NextResponse.json(
+                { error: 'User already exists with this email or ID' },
+                { status: 409 }
+            )
+        }
 
         return NextResponse.json(
             { error: `Failed to sync user: ${error.message}` },

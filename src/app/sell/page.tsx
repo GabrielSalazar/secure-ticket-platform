@@ -86,15 +86,19 @@ export default function SellPage() {
 
         try {
             // First, ensure user is synced to database
+            console.log('Syncing user...')
             const syncResponse = await fetch('/api/auth/sync', {
                 method: 'POST',
             })
 
             if (!syncResponse.ok) {
+                const syncError = await syncResponse.text()
+                console.error('Sync failed:', syncError)
                 setError('Erro ao sincronizar usuário. Por favor, faça logout e login novamente.')
                 setSubmitting(false)
                 return
             }
+            console.log('User synced successfully')
 
             // Now create the ticket
             const response = await fetch('/api/tickets', {
@@ -113,6 +117,7 @@ export default function SellPage() {
 
             if (!response.ok) {
                 const errorData = await response.json()
+                console.error('Ticket creation failed:', errorData)
                 setError(errorData.error || 'Erro ao criar ingresso')
                 setSubmitting(false)
                 return
@@ -133,7 +138,8 @@ export default function SellPage() {
                 router.push(`/events/${createdTicket.eventId}`)
             }, 2000)
         } catch (err) {
-            setError("Ocorreu um erro ao publicar o ingresso")
+            console.error('Error in handleSubmit:', err)
+            setError(err instanceof Error ? err.message : "Ocorreu um erro ao publicar o ingresso")
         } finally {
             setSubmitting(false)
         }
