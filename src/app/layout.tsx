@@ -8,6 +8,12 @@ const outfit = Outfit({ subsets: ["latin"], variable: "--font-outfit" });
 export const metadata: Metadata = {
   title: "SecureTicket | A Revolução na Revenda de Ingressos",
   description: "Compre e venda ingressos com segurança total. Preço justo, verificação anti-fraude e garantia de recebimento.",
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
 };
 
 export default function RootLayout({

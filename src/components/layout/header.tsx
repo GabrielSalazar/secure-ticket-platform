@@ -52,38 +52,38 @@ export function Header() {
 
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
-            <div className="container flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
-                <Link href="/" className="flex items-center gap-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                        <Ticket className="h-5 w-5" />
+            <div className="container flex h-14 md:h-16 max-w-7xl items-center justify-between px-4 md:px-6 gap-2">
+                <Link href="/" className="flex items-center gap-1.5 md:gap-2 shrink-0">
+                    <div className="flex h-7 w-7 md:h-8 md:w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                        <Ticket className="h-4 w-4 md:h-5 md:w-5" />
                     </div>
-                    <span className="text-lg font-bold tracking-tight">SecureTicket</span>
+                    <span className="text-base md:text-lg font-bold tracking-tight">SecureTicket</span>
                 </Link>
-                <nav className="hidden md:flex items-center gap-6 text-sm font-medium">
-                    <Link href="/events" className="text-muted-foreground transition-colors hover:text-foreground">
+                <nav className="hidden md:flex items-center gap-4 lg:gap-6 text-sm font-medium">
+                    <Link href="/events" className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap">
                         Eventos
                     </Link>
-                    <Link href="/sell" className="text-muted-foreground transition-colors hover:text-foreground">
+                    <Link href="/sell" className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap">
                         Vender Ingressos
                     </Link>
-                    <Link href="/how-it-works" className="text-muted-foreground transition-colors hover:text-foreground">
+                    <Link href="/how-it-works" className="text-muted-foreground transition-colors hover:text-foreground whitespace-nowrap">
                         Como Funciona
                     </Link>
                 </nav>
-                <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="hidden sm:flex">
+                <div className="flex items-center gap-2 md:gap-4">
+                    <Button variant="ghost" size="icon" className="hidden sm:flex shrink-0">
                         <Search className="h-4 w-4" />
                         <span className="sr-only">Buscar</span>
                     </Button>
 
                     {loading ? (
-                        <div className="h-9 w-20 animate-pulse bg-muted rounded" />
+                        <div className="h-8 md:h-9 w-16 md:w-20 animate-pulse bg-muted rounded" />
                     ) : user ? (
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button size="sm" variant="ghost" className="gap-2">
+                                <Button size="sm" variant="ghost" className="gap-1.5 md:gap-2 h-9">
                                     <User className="h-4 w-4" />
-                                    <span className="hidden sm:inline">{user.email?.split('@')[0]}</span>
+                                    <span className="hidden sm:inline text-sm truncate max-w-[100px]">{user.email?.split('@')[0]}</span>
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end" className="w-56">
@@ -107,13 +107,13 @@ export function Header() {
                         </DropdownMenu>
                     ) : (
                         <>
-                            <Button size="sm" variant="ghost" className="gap-2" asChild>
+                            <Button size="sm" variant="ghost" className="gap-1.5 md:gap-2 h-9" asChild>
                                 <Link href="/login">
                                     <User className="h-4 w-4" />
-                                    <span>Entrar</span>
+                                    <span className="text-sm">Entrar</span>
                                 </Link>
                             </Button>
-                            <Button size="sm" className="hidden sm:flex" asChild>
+                            <Button size="sm" className="hidden sm:flex h-9 text-sm" asChild>
                                 <Link href="/register">
                                     Criar Conta
                                 </Link>

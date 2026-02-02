@@ -57,7 +57,7 @@ export default async function EventPage({ params }: PageProps) {
             <Header />
             <main className="flex-1">
                 {/* Event Header */}
-                <div className="relative h-[300px] md:h-[400px] bg-muted overflow-hidden">
+                <div className="relative h-[250px] md:h-[300px] lg:h-[400px] bg-muted overflow-hidden">
                     {event.imageUrl ? (
                         <img
                             src={event.imageUrl}
@@ -65,32 +65,32 @@ export default async function EventPage({ params }: PageProps) {
                             className="absolute inset-0 w-full h-full object-cover"
                         />
                     ) : (
-                        <div className="absolute inset-0 bg-secondary flex items-center justify-center text-4xl text-muted-foreground font-bold opacity-20">
+                        <div className="absolute inset-0 bg-secondary flex items-center justify-center text-2xl md:text-4xl text-muted-foreground font-bold opacity-20">
                             {event.title}
                         </div>
                     )}
                     <div className="absolute inset-0 bg-linear-to-t from-background via-input/60 to-transparent" />
-                    <div className="absolute bottom-0 left-0 w-full p-4 md:p-8 container">
-                        <h1 className="text-3xl md:text-5xl font-bold text-white mb-2 shadow-sm">{event.title}</h1>
-                        <div className="flex flex-col md:flex-row gap-4 text-white/90 font-medium">
+                    <div className="absolute bottom-0 left-0 w-full p-4 md:p-6 lg:p-8 container">
+                        <h1 className="text-2xl md:text-3xl lg:text-5xl font-bold text-white mb-2 shadow-sm">{event.title}</h1>
+                        <div className="flex flex-col md:flex-row gap-2 md:gap-4 text-sm md:text-base text-white/90 font-medium">
                             <div className="flex items-center gap-2">
-                                <Calendar className="h-5 w-5" />
+                                <Calendar className="h-4 w-4 md:h-5 md:w-5" />
                                 <span>{date} às {time}</span>
                             </div>
                             <div className="flex items-center gap-2">
-                                <MapPin className="h-5 w-5" />
+                                <MapPin className="h-4 w-4 md:h-5 md:w-5" />
                                 <span>{event.location}</span>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <div className="container py-8 px-4 md:px-6 grid md:grid-cols-3 gap-8">
+                <div className="container py-6 md:py-8 px-6 md:px-8 grid md:grid-cols-3 gap-6 md:gap-8">
                     {/* Ticket List */}
-                    <div className="md:col-span-2 space-y-6">
+                    <div className="md:col-span-2 space-y-4 md:space-y-6">
                         <div className="flex items-center justify-between">
-                            <h2 className="text-2xl font-bold">Ingressos Disponíveis</h2>
-                            <span className="text-muted-foreground text-sm">{tickets.length} opções</span>
+                            <h2 className="text-xl md:text-2xl font-bold">Ingressos Disponíveis</h2>
+                            <span className="text-muted-foreground text-xs md:text-sm">{tickets.length} opções</span>
                         </div>
 
                         {tickets.length === 0 ? (
@@ -103,37 +103,39 @@ export default async function EventPage({ params }: PageProps) {
                                 </CardContent>
                             </Card>
                         ) : (
-                            <div className="space-y-4">
+                            <div className="space-y-3 md:space-y-4">
                                 {tickets.map((ticket: any) => (
                                     <Card key={ticket.id} className="group hover:border-primary/50 transition-colors">
-                                        <CardContent className="p-4 flex items-center justify-between">
-                                            <div className="space-y-1">
-                                                <div className="flex items-center gap-2">
-                                                    <h3 className="font-bold text-lg">
-                                                        {ticket.section || 'Ingresso Geral'}
-                                                        {ticket.row && ticket.seat && ` - Fila ${ticket.row}, Assento ${ticket.seat}`}
-                                                    </h3>
-                                                    <Badge variant="outline" className="text-emerald-500 border-emerald-500/50 bg-emerald-500/10 gap-1">
-                                                        <ShieldCheck className="h-3 w-3" /> Verificado
-                                                    </Badge>
+                                        <CardContent className="p-4 md:p-5">
+                                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                                                <div className="space-y-1 flex-1 min-w-0">
+                                                    <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+                                                        <h3 className="font-bold text-base md:text-lg truncate">
+                                                            {ticket.section || 'General Admission'}
+                                                            {ticket.row && ticket.seat && ` - Fila ${ticket.row}, Assento ${ticket.seat}`}
+                                                        </h3>
+                                                        <Badge variant="outline" className="text-emerald-500 border-emerald-500/50 bg-emerald-500/10 gap-1 w-fit">
+                                                            <ShieldCheck className="h-3 w-3" /> Verificado
+                                                        </Badge>
+                                                    </div>
+                                                    <p className="text-xs md:text-sm text-muted-foreground truncate">
+                                                        Vendedor: {ticket.seller?.name || 'Anônimo'}
+                                                    </p>
                                                 </div>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Vendedor: {ticket.seller?.name || 'Anônimo'}
-                                                </p>
-                                            </div>
-                                            <div className="flex items-center gap-4">
-                                                <div className="text-right">
-                                                    <div className="text-xl font-bold">R$ {ticket.price.toFixed(2)}</div>
+                                                <div className="flex items-center justify-between sm:justify-end gap-3 sm:gap-4">
+                                                    <div className="text-left sm:text-right">
+                                                        <div className="text-lg md:text-xl font-bold">R$ {ticket.price.toFixed(2)}</div>
+                                                    </div>
+                                                    <PurchaseButton
+                                                        ticketId={ticket.id}
+                                                        price={ticket.price}
+                                                        section={ticket.section}
+                                                        row={ticket.row}
+                                                        seat={ticket.seat}
+                                                        eventTitle={event.title}
+                                                        sellerName={ticket.seller?.name}
+                                                    />
                                                 </div>
-                                                <PurchaseButton
-                                                    ticketId={ticket.id}
-                                                    price={ticket.price}
-                                                    section={ticket.section}
-                                                    row={ticket.row}
-                                                    seat={ticket.seat}
-                                                    eventTitle={event.title}
-                                                    sellerName={ticket.seller?.name}
-                                                />
                                             </div>
                                         </CardContent>
                                     </Card>
@@ -143,17 +145,17 @@ export default async function EventPage({ params }: PageProps) {
                     </div>
 
                     {/* Sidebar info */}
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                         <Card>
-                            <CardContent className="p-6 space-y-4">
-                                <h3 className="font-semibold text-lg">Informações Seguras</h3>
-                                <ul className="space-y-3 text-sm text-muted-foreground">
+                            <CardContent className="p-5 md:p-6 space-y-3 md:space-y-4">
+                                <h3 className="font-semibold text-base md:text-lg">Informações Seguras</h3>
+                                <ul className="space-y-2 md:space-y-3 text-xs md:text-sm text-muted-foreground">
                                     <li className="flex gap-2">
-                                        <ShieldCheck className="h-5 w-5 text-primary shrink-0" />
+                                        <ShieldCheck className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
                                         <span>Ingressos verificados manualmente ou via integração</span>
                                     </li>
                                     <li className="flex gap-2">
-                                        <AlertCircle className="h-5 w-5 text-primary shrink-0" />
+                                        <AlertCircle className="h-4 w-4 md:h-5 md:w-5 text-primary shrink-0" />
                                         <span>O vendedor só recebe após o evento</span>
                                     </li>
                                 </ul>
@@ -163,12 +165,12 @@ export default async function EventPage({ params }: PageProps) {
                             </CardContent>
                         </Card>
 
-                        <div className="bg-primary/5 rounded-xl p-6 text-center space-y-4 border border-primary/20">
-                            <h3 className="font-semibold">Tem ingresso sobrando?</h3>
-                            <p className="text-sm text-muted-foreground">
+                        <div className="bg-primary/5 rounded-xl p-5 md:p-6 text-center space-y-3 md:space-y-4 border border-primary/20">
+                            <h3 className="font-semibold text-sm md:text-base">Tem ingresso sobrando?</h3>
+                            <p className="text-xs md:text-sm text-muted-foreground">
                                 Venda para quem realmente é fã. Sem ágio abusivo, com segurança total.
                             </p>
-                            <Button variant="secondary" className="w-full" asChild>
+                            <Button variant="secondary" className="w-full" size="sm" asChild>
                                 <Link href="/sell">Vender meu ingresso</Link>
                             </Button>
                         </div>

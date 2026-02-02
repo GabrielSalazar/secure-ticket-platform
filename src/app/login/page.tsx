@@ -72,11 +72,11 @@ export default function LoginPage() {
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
-            <div className="flex-1 flex items-center justify-center p-4">
-                <div className="w-full max-w-md space-y-8 bg-card p-8 rounded-xl border border-border shadow-lg">
-                    <div className="flex flex-col space-y-2 text-center">
-                        <h1 className="text-2xl font-bold tracking-tight">Bem-vindo de volta</h1>
-                        <p className="text-sm text-muted-foreground">
+            <div className="flex-1 flex items-center justify-center p-4 md:p-6">
+                <div className="w-full max-w-md space-y-6 md:space-y-8 bg-card p-6 md:p-8 rounded-xl border border-border shadow-lg">
+                    <div className="flex flex-col space-y-1.5 md:space-y-2 text-center">
+                        <h1 className="text-xl md:text-2xl font-bold tracking-tight">Bem-vindo de volta</h1>
+                        <p className="text-xs md:text-sm text-muted-foreground">
                             Entre para acessar seus ingressos e vendas
                         </p>
                     </div>
