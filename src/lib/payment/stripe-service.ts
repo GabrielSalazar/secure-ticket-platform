@@ -1,12 +1,21 @@
 import Stripe from 'stripe'
 
-if (!process.env.STRIPE_SECRET_KEY) {
-    throw new Error('STRIPE_SECRET_KEY is not defined in environment variables')
-}
+// Lazy initialization to avoid build-time errors
+let stripeInstance: Stripe | null = null
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-    apiVersion: '2026-01-28.clover',
-})
+function getStripe(): Stripe {
+    if (!stripeInstance) {
+        if (!process.env.STRIPE_SECRET_KEY) {
+            throw new Error('STRIPE_SECRET_KEY is not defined in environment variables')
+        }
+
+        stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY, {
+            apiVersion: '2026-01-28.clover' as any,
+            typescript: true,
+        })
+    }
+    return stripeInstance
+}
 
 export interface CreateCheckoutSessionParams {
     transactionId: string
@@ -31,6 +40,7 @@ export interface PaymentResult {
 export async function createCheckoutSession(
     params: CreateCheckoutSessionParams
 ): Promise<PaymentResult> {
+    const stripe = getStripe()
     try {
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -86,6 +96,7 @@ export function verifyWebhookSignature(
     }
 
     try {
+        const stripe = getStripe()
         return stripe.webhooks.constructEvent(payload, signature, webhookSecret)
     } catch (error) {
         console.error('Error verifying webhook signature:', error)
@@ -97,6 +108,7 @@ export function verifyWebhookSignature(
  * Retrieve a checkout session by ID
  */
 export async function getCheckoutSession(sessionId: string): Promise<Stripe.Checkout.Session | null> {
+    const stripe = getStripe()
     try {
         return await stripe.checkout.sessions.retrieve(sessionId)
     } catch (error) {
@@ -105,4 +117,4 @@ export async function getCheckoutSession(sessionId: string): Promise<Stripe.Chec
     }
 }
 
-export { stripe }
+export { getStripe }
