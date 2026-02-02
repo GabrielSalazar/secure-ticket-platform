@@ -15,8 +15,13 @@ export async function GET() {
 
     try {
         // Get user from database or create if doesn't exist
-        let user = await prisma.user.findUnique({
-            where: { id: authUser.id },
+        let user = await prisma.user.findFirst({
+            where: {
+                OR: [
+                    { id: authUser.id },
+                    { email: authUser.email! }
+                ]
+            },
         })
 
         // If user doesn't exist in database, create it
