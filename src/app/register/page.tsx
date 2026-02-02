@@ -64,7 +64,9 @@ export default function RegisterPage() {
                 }
 
                 // Redirect to login or home
-                router.push("/login")
+                // Redirect to home since they are already logged in (no email confirm)
+                router.push("/")
+                router.refresh()
             }
         } catch (err) {
             setError("Ocorreu um erro ao criar a conta")

@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Header } from "@/components/layout/header"
 import Link from "next/link"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 
@@ -16,6 +16,28 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const supabase = createClient()
+
+    useEffect(() => {
+        // Check active session
+        const checkUser = async () => {
+            const { data: { session } } = await supabase.auth.getSession()
+            if (session) {
+                console.log("User already logged in, redirecting to home...")
+                window.location.href = "/" // Force hard redirect to be sure
+            }
+        }
+
+        checkUser()
+
+        // Also listen for auth changes (like login success)
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (event === 'SIGNED_IN' || session) {
+                window.location.href = "/"
+            }
+        })
+
+        return () => subscription.unsubscribe()
+    }, [supabase, router])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()

@@ -47,10 +47,10 @@ export async function POST(request: Request) {
         })
 
         return NextResponse.json({ user }, { status: 201 })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating user in database:', error)
         return NextResponse.json(
-            { error: 'Failed to create user profile' },
+            { error: `Erro ao criar perfil no banco: ${error.message || error}` },
             { status: 500 }
         )
     }
