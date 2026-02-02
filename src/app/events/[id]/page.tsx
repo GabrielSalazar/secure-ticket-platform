@@ -128,6 +128,7 @@ export default async function EventPage({ params }: PageProps) {
                                                     </div>
                                                     <PurchaseButton
                                                         ticketId={ticket.id}
+                                                        sellerId={ticket.sellerId}
                                                         price={ticket.price}
                                                         section={ticket.section}
                                                         row={ticket.row}

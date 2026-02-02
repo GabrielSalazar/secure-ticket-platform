@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
         const dateTo = searchParams.get('dateTo')
         const minPrice = searchParams.get('minPrice')
         const maxPrice = searchParams.get('maxPrice')
+        const sortBy = searchParams.get('sortBy') || 'date' // date, price, availability
 
         // Build where clause for filtering
         const where: any = {}
@@ -53,6 +54,11 @@ export async function GET(request: NextRequest) {
                         status: true,
                     },
                 },
+                _count: {
+                    select: {
+                        tickets: true,
+                    },
+                },
             },
             orderBy: {
                 date: 'asc',
@@ -76,6 +82,19 @@ export async function GET(request: NextRequest) {
                 if (maxPrice && event.minPrice > parseFloat(maxPrice)) return false
                 return true
             })
+        }
+
+        // Sort events based on sortBy parameter
+        if (sortBy === 'price') {
+            eventsWithMinPrice.sort((a, b) => {
+                const priceA = a.minPrice || Infinity
+                const priceB = b.minPrice || Infinity
+                return priceA - priceB
+            })
+        } else if (sortBy === 'availability') {
+            eventsWithMinPrice.sort((a, b) => b.availableTickets - a.availableTickets)
+        } else if (sortBy === 'date') {
+            eventsWithMinPrice.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
         }
 
         return NextResponse.json(eventsWithMinPrice)

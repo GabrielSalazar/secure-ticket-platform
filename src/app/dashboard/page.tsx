@@ -73,59 +73,107 @@ export default function DashboardPage() {
 
     const availableTickets = mySales.filter(t => t.status === 'AVAILABLE').length
     const soldTickets = mySales.filter(t => t.status === 'SOLD').length
-    const totalSales = mySales.filter(t => t.status === 'AVAILABLE').reduce((sum, ticket) => sum + ticket.price, 0)
-    const totalRevenue = mySales.filter(t => t.status === 'SOLD').reduce((sum, ticket) => sum + ticket.price, 0)
+    const potentialRevenue = mySales.filter(t => t.status === 'AVAILABLE').reduce((sum, ticket) => sum + ticket.price, 0)
+    const earnedRevenue = mySales.filter(t => t.status === 'SOLD').reduce((sum, ticket) => sum + ticket.price, 0)
+
+    const purchasedTickets = myPurchases.length
+    const totalSpent = myPurchases.reduce((sum, transaction) => sum + transaction.price, 0)
 
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
             <main className="flex-1 container py-8 px-4 md:px-6">
                 <div className="space-y-8">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-                        <p className="text-muted-foreground">Bem-vindo de volta, {user?.email?.split('@')[0]}!</p>
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                        <div>
+                            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+                            <p className="text-muted-foreground">Bem-vindo de volta, {user?.email?.split('@')[0]}!</p>
+                        </div>
+                        <div className="flex gap-2">
+                            <Button asChild variant="outline">
+                                <Link href="/events">Explorar Eventos</Link>
+                            </Button>
+                            <Button asChild>
+                                <Link href="/sell">Vender Ingresso</Link>
+                            </Button>
+                        </div>
                     </div>
 
                     {/* Stats Cards */}
-                    <div className="grid gap-4 md:grid-cols-3">
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Ingressos à Venda</CardTitle>
-                                <Ticket className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{availableTickets}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {availableTickets === 0 ? "Nenhum ingresso publicado" : "Disponíveis para compra"}
-                                </p>
-                            </CardContent>
-                        </Card>
+                    <div>
+                        <h2 className="text-lg font-semibold mb-4">Minhas Vendas</h2>
+                        <div className="grid gap-4 md:grid-cols-3">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Ingressos à Venda</CardTitle>
+                                    <Ticket className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{availableTickets}</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {availableTickets === 0 ? "Nenhum ingresso publicado" : "Disponíveis para compra"}
+                                    </p>
+                                </CardContent>
+                            </Card>
 
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Valor Total</CardTitle>
-                                <DollarSign className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">R$ {totalSales.toFixed(2)}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    Em ingressos publicados
-                                </p>
-                            </CardContent>
-                        </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Receita Potencial</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">R$ {potentialRevenue.toFixed(2)}</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Em ingressos publicados
+                                    </p>
+                                </CardContent>
+                            </Card>
 
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium">Vendas Concluídas</CardTitle>
-                                <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-2xl font-bold">{soldTickets}</div>
-                                <p className="text-xs text-muted-foreground">
-                                    {soldTickets === 0 ? 'Nenhuma venda ainda' : `R$ ${totalRevenue.toFixed(2)} em vendas`}
-                                </p>
-                            </CardContent>
-                        </Card>
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Vendas Concluídas</CardTitle>
+                                    <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{soldTickets}</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {soldTickets === 0 ? 'Nenhuma venda ainda' : `R$ ${earnedRevenue.toFixed(2)} recebidos`}
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+
+                    {/* Purchase Stats */}
+                    <div>
+                        <h2 className="text-lg font-semibold mb-4">Minhas Compras</h2>
+                        <div className="grid gap-4 md:grid-cols-2">
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Ingressos Comprados</CardTitle>
+                                    <Ticket className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">{purchasedTickets}</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        {purchasedTickets === 0 ? "Nenhum ingresso comprado" : "Total de ingressos"}
+                                    </p>
+                                </CardContent>
+                            </Card>
+
+                            <Card>
+                                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                                    <CardTitle className="text-sm font-medium">Total Gasto</CardTitle>
+                                    <DollarSign className="h-4 w-4 text-muted-foreground" />
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="text-2xl font-bold">R$ {totalSpent.toFixed(2)}</div>
+                                    <p className="text-xs text-muted-foreground">
+                                        Em compras de ingressos
+                                    </p>
+                                </CardContent>
+                            </Card>
+                        </div>
                     </div>
 
                     {/* My Tickets for Sale */}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import {
@@ -13,9 +13,11 @@ import {
 } from '@/components/ui/dialog'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react'
+import { createClient } from '@/lib/supabase/client'
 
 interface PurchaseButtonProps {
     ticketId: string
+    sellerId: string
     price: number
     section?: string
     row?: string
@@ -26,6 +28,7 @@ interface PurchaseButtonProps {
 
 export function PurchaseButton({
     ticketId,
+    sellerId,
     price,
     section,
     row,
@@ -34,10 +37,20 @@ export function PurchaseButton({
     sellerName,
 }: PurchaseButtonProps) {
     const router = useRouter()
+    const supabase = createClient()
+    const [currentUserId, setCurrentUserId] = useState<string | null>(null)
     const [isDialogOpen, setIsDialogOpen] = useState(false)
     const [isPurchasing, setIsPurchasing] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [success, setSuccess] = useState(false)
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setCurrentUserId(user?.id || null)
+        })
+    }, [])
+
+    const isOwnTicket = currentUserId === sellerId
 
     const handlePurchase = async () => {
         setIsPurchasing(true)
@@ -60,9 +73,9 @@ export function PurchaseButton({
 
             setSuccess(true)
 
-            // Redirect to dashboard after 2 seconds
+            // Redirect to my-tickets after 2 seconds
             setTimeout(() => {
-                router.push('/dashboard')
+                router.push('/my-tickets')
                 router.refresh()
             }, 2000)
         } catch (err) {
@@ -79,8 +92,12 @@ export function PurchaseButton({
 
     return (
         <>
-            <Button onClick={() => setIsDialogOpen(true)}>
-                Comprar
+            <Button
+                onClick={() => setIsDialogOpen(true)}
+                disabled={isOwnTicket}
+                title={isOwnTicket ? 'Você não pode comprar seu próprio ingresso' : ''}
+            >
+                {isOwnTicket ? 'Seu Ingresso' : 'Comprar'}
             </Button>
 
             <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -101,7 +118,7 @@ export function PurchaseButton({
                         <div className="flex flex-col items-center justify-center py-6 space-y-4">
                             <CheckCircle2 className="h-16 w-16 text-green-500" />
                             <p className="text-center text-sm text-muted-foreground">
-                                Redirecionando para o dashboard...
+                                Redirecionando para seus ingressos...
                             </p>
                         </div>
                     ) : (

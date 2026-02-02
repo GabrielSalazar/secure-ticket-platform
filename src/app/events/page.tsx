@@ -6,12 +6,15 @@ import { Footer } from "@/components/layout/footer"
 import { EventCard } from "@/components/events/event-card"
 import { EventFilters, FilterValues } from "@/components/events/event-filters"
 import { Input } from "@/components/ui/input"
-import { Search, Loader2 } from "lucide-react"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Search, Loader2, SlidersHorizontal } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
 
 export default function EventsPage() {
     const [events, setEvents] = useState<any[]>([])
     const [loading, setLoading] = useState(true)
     const [searchQuery, setSearchQuery] = useState('')
+    const [sortBy, setSortBy] = useState('date')
     const [filters, setFilters] = useState<FilterValues>({
         dateFrom: '',
         dateTo: '',
@@ -29,6 +32,7 @@ export default function EventsPage() {
             if (filters.dateTo) params.append('dateTo', filters.dateTo)
             if (filters.minPrice) params.append('minPrice', filters.minPrice)
             if (filters.maxPrice) params.append('maxPrice', filters.maxPrice)
+            if (sortBy) params.append('sortBy', sortBy)
 
             const queryString = params.toString()
             const url = `/api/events${queryString ? `?${queryString}` : ''}`
@@ -53,7 +57,7 @@ export default function EventsPage() {
 
     useEffect(() => {
         fetchEvents()
-    }, [searchQuery, filters])
+    }, [searchQuery, filters, sortBy])
 
     const handleSearch = (value: string) => {
         setSearchQuery(value)
@@ -62,6 +66,8 @@ export default function EventsPage() {
     const handleApplyFilters = (newFilters: FilterValues) => {
         setFilters(newFilters)
     }
+
+    const activeFiltersCount = Object.values(filters).filter(v => v !== '').length
 
     return (
         <div className="min-h-screen flex flex-col">
@@ -73,7 +79,7 @@ export default function EventsPage() {
                             <h1 className="text-3xl font-bold tracking-tight">Próximos Eventos</h1>
                             <p className="text-muted-foreground">Encontre ingressos para os melhores shows e festivais.</p>
                         </div>
-                        <div className="flex w-full md:w-auto gap-2">
+                        <div className="flex w-full md:w-auto gap-2 flex-wrap">
                             <div className="relative w-full md:w-80">
                                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input
@@ -84,10 +90,30 @@ export default function EventsPage() {
                                     onChange={(e) => handleSearch(e.target.value)}
                                 />
                             </div>
-                            <EventFilters
-                                onApplyFilters={handleApplyFilters}
-                                currentFilters={filters}
-                            />
+                            <Select value={sortBy} onValueChange={setSortBy}>
+                                <SelectTrigger className="w-full md:w-[180px]">
+                                    <SelectValue placeholder="Ordenar por" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="date">Data mais próxima</SelectItem>
+                                    <SelectItem value="price">Menor preço</SelectItem>
+                                    <SelectItem value="availability">Mais disponíveis</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <div className="relative">
+                                <EventFilters
+                                    onApplyFilters={handleApplyFilters}
+                                    currentFilters={filters}
+                                />
+                                {activeFiltersCount > 0 && (
+                                    <Badge
+                                        variant="destructive"
+                                        className="absolute -top-2 -right-2 h-5 w-5 flex items-center justify-center p-0 text-xs"
+                                    >
+                                        {activeFiltersCount}
+                                    </Badge>
+                                )}
+                            </div>
                         </div>
                     </div>
 

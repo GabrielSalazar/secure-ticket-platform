@@ -3,9 +3,10 @@ import { Footer } from "@/components/layout/footer";
 import { Header } from "@/components/layout/header";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { TicketActions } from "@/components/tickets/ticket-actions";
 import { getSoldTickets } from "@/data/tickets";
 import { createClient } from "@/lib/supabase/server";
-import { Calendar, DollarSign, Edit, MapPin, Ticket as TicketIcon, Trash } from "lucide-react";
+import { Calendar, DollarSign, MapPin, Ticket as TicketIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
@@ -97,15 +98,13 @@ export default async function MySalesPage() {
                                                     Pagamento: Pendente liberação
                                                 </div>
                                             ) : (
-                                                <div className="flex gap-2">
-                                                    <Button size="sm" variant="outline" className="h-8">
-                                                        <Edit className="h-3 w-3 mr-1" />
-                                                        Editar
-                                                    </Button>
-                                                    <Button size="sm" variant="ghost" className="h-8 text-destructive hover:text-destructive hover:bg-destructive/10">
-                                                        <Trash className="h-3 w-3" />
-                                                    </Button>
-                                                </div>
+                                                <TicketActions
+                                                    ticketId={ticket.id}
+                                                    currentPrice={ticket.price}
+                                                    currentSection={ticket.section}
+                                                    currentRow={ticket.row}
+                                                    currentSeat={ticket.seat}
+                                                />
                                             )}
                                         </div>
                                     </div>
