@@ -1,0 +1,100 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String   // In a real app, this should be hashed
+  role      Role     @default(BUYER)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relations
+  events       Event[]  @relation("EventOrganizer")
+  tickets      Ticket[] @relation("TicketSeller")
+  purchases    Transaction[] @relation("BuyerTransactions")
+  sales        Transaction[] @relation("SellerTransactions")
+}
+
+model Event {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  location    String
+  date        DateTime
+  imageUrl    String?
+  organizerId String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  organizer   User     @relation("EventOrganizer", fields: [organizerId], references: [id])
+  tickets     Ticket[]
+}
+
+model Ticket {
+  id          String   @id @default(cuid())
+  price       Float
+  section     String?
+  row         String?
+  seat        String?
+  status      TicketStatus @default(AVAILABLE)
+  eventId     String
+  sellerId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  event       Event    @relation(fields: [eventId], references: [id])
+  seller      User     @relation("TicketSeller", fields: [sellerId], references: [id])
+  transaction Transaction?
+}
+
+model Transaction {
+  id          String   @id @default(cuid())
+  amount      Float
+  status      TransactionStatus @default(PENDING)
+  ticketId    String   @unique
+  buyerId     String
+  sellerId    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  ticket      Ticket   @relation(fields: [ticketId], references: [id])
+  buyer       User     @relation("BuyerTransactions", fields: [buyerId], references: [id])
+  seller      User     @relation("SellerTransactions", fields: [sellerId], references: [id])
+}
+
+enum Role {
+  BUYER
+  SELLER
+  ADMIN
+}
+
+enum TicketStatus {
+  AVAILABLE
+  SOLD
+  RESERVED
+}
+
+enum TransactionStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
