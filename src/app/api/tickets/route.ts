@@ -108,17 +108,38 @@ export async function POST(request: Request) {
             )
         }
 
-        // Verify user exists in database (should already exist from auth)
-        const dbUser = await prisma.user.findUnique({
+        // Verify user exists in database, create if not
+        let dbUser = await prisma.user.findUnique({
             where: { id: authUser.id },
         })
 
         if (!dbUser) {
-            console.error('User not found in database:', authUser.id)
-            return NextResponse.json(
-                { error: 'User not found. Please logout and login again.' },
-                { status: 400 }
-            )
+            console.log('User not found in database, creating...')
+
+            // Try to find by email first
+            const existingUser = await prisma.user.findUnique({
+                where: { email: authUser.email! }
+            })
+
+            if (existingUser && existingUser.id !== authUser.id) {
+                console.log('Found user by email with different ID, updating...')
+                // Delete old user and create new one with correct ID
+                await prisma.user.delete({
+                    where: { id: existingUser.id }
+                })
+            }
+
+            // Create user
+            dbUser = await prisma.user.create({
+                data: {
+                    id: authUser.id,
+                    email: authUser.email!,
+                    name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                    password: '',
+                    role: 'BUYER',
+                }
+            })
+            console.log('User created successfully:', dbUser.id)
         }
 
         console.log('User verified in database:', dbUser.id)

@@ -85,22 +85,7 @@ export default function SellPage() {
         }
 
         try {
-            // First, ensure user is synced to database
-            console.log('Syncing user...')
-            const syncResponse = await fetch('/api/auth/sync', {
-                method: 'POST',
-            })
-
-            if (!syncResponse.ok) {
-                const syncError = await syncResponse.text()
-                console.error('Sync failed:', syncError)
-                setError('Erro ao sincronizar usuário. Por favor, faça logout e login novamente.')
-                setSubmitting(false)
-                return
-            }
-            console.log('User synced successfully')
-
-            // Now create the ticket
+            // Create the ticket (endpoint will auto-sync user if needed)
             const response = await fetch('/api/tickets', {
                 method: 'POST',
                 headers: {
