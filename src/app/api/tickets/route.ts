@@ -77,11 +77,34 @@ export async function POST(request: Request) {
         const body = await request.json()
         const { price, section, row, seat, eventId } = body
 
+        console.log('Creating ticket with data:', { price, section, row, seat, eventId, sellerId: authUser.id })
+
         // Validate required fields
         if (!price || !eventId) {
             return NextResponse.json(
                 { error: 'Missing required fields: price, eventId' },
                 { status: 400 }
+            )
+        }
+
+        // Validate price is a positive number
+        const parsedPrice = parseFloat(price)
+        if (isNaN(parsedPrice) || parsedPrice <= 0) {
+            return NextResponse.json(
+                { error: 'Price must be a positive number' },
+                { status: 400 }
+            )
+        }
+
+        // Verify event exists
+        const event = await prisma.event.findUnique({
+            where: { id: eventId }
+        })
+
+        if (!event) {
+            return NextResponse.json(
+                { error: 'Event not found' },
+                { status: 404 }
             )
         }
 
@@ -91,21 +114,23 @@ export async function POST(request: Request) {
         })
 
         if (!dbUser) {
+            console.log('User not found in database, creating user:', authUser.id)
             // Create user if doesn't exist
             dbUser = await prisma.user.create({
                 data: {
                     id: authUser.id,
                     email: authUser.email!,
-                    name: authUser.user_metadata?.name || null,
+                    name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
                     password: '',
                     role: 'BUYER',
                 },
             })
+            console.log('User created successfully:', dbUser.id)
         }
 
         const ticket = await prisma.ticket.create({
             data: {
-                price: parseFloat(price),
+                price: parsedPrice,
                 section: section || null,
                 row: row || null,
                 seat: seat || null,
@@ -130,11 +155,26 @@ export async function POST(request: Request) {
             },
         })
 
+        console.log('Ticket created successfully:', ticket.id)
         return NextResponse.json(ticket, { status: 201 })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error creating ticket:', error)
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            meta: error.meta,
+        })
+
+        // Provide more specific error messages
+        if (error.code === 'P2003') {
+            return NextResponse.json(
+                { error: 'Invalid event ID or user ID' },
+                { status: 400 }
+            )
+        }
+
         return NextResponse.json(
-            { error: 'Failed to create ticket' },
+            { error: `Failed to create ticket: ${error.message || 'Unknown error'}` },
             { status: 500 }
         )
     }

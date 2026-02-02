@@ -64,7 +64,6 @@ export default function SellPage() {
                 },
                 body: JSON.stringify({
                     eventId: selectedEventId,
-                    sellerId: user.id,
                     price: parseFloat(price),
                     section: section || null,
                     row: row || null,
