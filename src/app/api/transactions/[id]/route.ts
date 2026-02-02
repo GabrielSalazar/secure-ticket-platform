@@ -54,7 +54,10 @@ export async function GET(
         }
 
         // Verify user has access to this transaction
-        if (transaction.buyerId !== user.id && transaction.sellerId !== user.id) {
+        const isBuyer = transaction.buyerId === user.id || (transaction.buyer?.email && transaction.buyer.email === user.email)
+        const isSeller = transaction.sellerId === user.id || (transaction.seller?.email && transaction.seller.email === user.email)
+
+        if (!isBuyer && !isSeller) {
             return NextResponse.json(
                 { error: 'Você não tem permissão para acessar esta transação' },
                 { status: 403 }
