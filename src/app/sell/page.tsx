@@ -101,9 +101,16 @@ export default function SellPage() {
             })
 
             if (!response.ok) {
-                const errorData = await response.json()
-                console.error('Ticket creation failed:', errorData)
-                setError(errorData.error || 'Erro ao criar ingresso')
+                let errorMessage = 'Erro ao criar ingresso'
+                try {
+                    const errorData = await response.json()
+                    console.error('Ticket creation failed:', errorData)
+                    errorMessage = errorData.error || errorMessage
+                } catch (parseError) {
+                    console.error('Failed to parse error response:', parseError)
+                    errorMessage = `Erro ${response.status}: ${response.statusText}`
+                }
+                setError(errorMessage)
                 setSubmitting(false)
                 return
             }
