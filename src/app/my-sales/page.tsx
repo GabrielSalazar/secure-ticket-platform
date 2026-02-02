@@ -9,8 +9,21 @@ import { createClient } from "@/lib/supabase/server";
 import { Calendar, DollarSign, MapPin, Ticket as TicketIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { ManagementFilters } from "@/components/shared/management-filters";
 
-export default async function MySalesPage() {
+interface PageProps {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function MySalesPage({ searchParams }: PageProps) {
+    const params = await searchParams;
+    const filters = {
+        search: typeof params.search === 'string' ? params.search : undefined,
+        status: typeof params.status === 'string' ? params.status : undefined,
+        dateFrom: typeof params.dateFrom === 'string' ? params.dateFrom : undefined,
+        dateTo: typeof params.dateTo === 'string' ? params.dateTo : undefined,
+    };
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -18,7 +31,12 @@ export default async function MySalesPage() {
         redirect("/login");
     }
 
-    const tickets = await getSoldTickets(user.id);
+    const tickets = await getSoldTickets(user.id, filters);
+
+    const statusOptions = [
+        { label: 'À Venda', value: 'AVAILABLE' },
+        { label: 'Vendido', value: 'SOLD' },
+    ];
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -37,16 +55,27 @@ export default async function MySalesPage() {
                         </Button>
                     </div>
 
+                    <ManagementFilters
+                        showStatusFilter
+                        statusOptions={statusOptions}
+                    />
+
                     {tickets.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-xl border border-dashed border-muted-foreground/25">
                             <TicketIcon className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-lg font-semibold">Nenhum ingresso cadastrado</h3>
+                            <h3 className="text-lg font-semibold">
+                                {Object.values(filters).some(Boolean) ? "Nenhum resultado encontrado" : "Nenhum ingresso cadastrado"}
+                            </h3>
                             <p className="text-muted-foreground mb-6 text-center max-w-md">
-                                Você ainda não colocou ingressos à venda. Comece a lucrar com segurança agora mesmo!
+                                {Object.values(filters).some(Boolean)
+                                    ? "Tente ajustar seus filtros para encontrar o que procura."
+                                    : "Você ainda não colocou ingressos à venda. Comece a lucrar com segurança agora mesmo!"}
                             </p>
-                            <Button asChild>
-                                <Link href="/sell">Vender Ingresso</Link>
-                            </Button>
+                            {!Object.values(filters).some(Boolean) && (
+                                <Button asChild>
+                                    <Link href="/sell">Vender Ingresso</Link>
+                                </Button>
+                            )}
                         </div>
                     ) : (
                         <div className="grid gap-6">
@@ -101,9 +130,9 @@ export default async function MySalesPage() {
                                                 <TicketActions
                                                     ticketId={ticket.id}
                                                     currentPrice={ticket.price}
-                                                    currentSection={ticket.section}
-                                                    currentRow={ticket.row}
-                                                    currentSeat={ticket.seat}
+                                                    currentSection={ticket.section || undefined}
+                                                    currentRow={ticket.row || undefined}
+                                                    currentSeat={ticket.seat || undefined}
                                                 />
                                             )}
                                         </div>

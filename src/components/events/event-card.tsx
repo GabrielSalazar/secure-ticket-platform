@@ -26,10 +26,18 @@ export function EventCard({ event }: EventCardProps) {
     return (
         <Card className="group overflow-hidden border-border transition-all hover:border-primary/50 hover:shadow-md">
             <div className="aspect-[16/9] w-full bg-muted relative overflow-hidden">
-                {/* Placeholder for Image */}
-                <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 via-primary/10 to-background text-muted-foreground group-hover:scale-105 transition-transform duration-300 p-4 text-center font-semibold">
-                    {event.title}
-                </div>
+                {/* Event Image or Placeholder */}
+                {event.imageUrl ? (
+                    <img
+                        src={event.imageUrl}
+                        alt={event.title}
+                        className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
+                    />
+                ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary/20 via-primary/10 to-background text-muted-foreground group-hover:scale-105 transition-transform duration-300 p-4 text-center font-semibold">
+                        {event.title}
+                    </div>
+                )}
                 {/* Availability Badge */}
                 <div className="absolute top-2 left-2 flex flex-col gap-1">
                     {event.verified && (

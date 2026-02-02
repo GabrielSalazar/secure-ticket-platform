@@ -8,7 +8,20 @@ import { Calendar, MapPin, Ticket as TicketIcon } from "lucide-react";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
-export default async function MyTicketsPage() {
+import { ManagementFilters } from "@/components/shared/management-filters";
+
+interface PageProps {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function MyTicketsPage({ searchParams }: PageProps) {
+    const params = await searchParams;
+    const filters = {
+        search: typeof params.search === 'string' ? params.search : undefined,
+        dateFrom: typeof params.dateFrom === 'string' ? params.dateFrom : undefined,
+        dateTo: typeof params.dateTo === 'string' ? params.dateTo : undefined,
+    };
+
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
 
@@ -16,7 +29,7 @@ export default async function MyTicketsPage() {
         redirect("/login");
     }
 
-    const tickets = await getPurchasedTickets(user.id);
+    const tickets = await getPurchasedTickets(user.id, filters);
 
     return (
         <div className="flex min-h-screen flex-col">
@@ -30,23 +43,31 @@ export default async function MyTicketsPage() {
                         </p>
                     </div>
 
+                    <ManagementFilters />
+
                     {tickets.length === 0 ? (
                         <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-xl border border-dashed border-muted-foreground/25">
                             <TicketIcon className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-lg font-semibold">Nenhum ingresso encontrado</h3>
+                            <h3 className="text-lg font-semibold">
+                                {Object.values(filters).some(Boolean) ? "Nenhum resultado encontrado" : "Nenhum ingresso encontrado"}
+                            </h3>
                             <p className="text-muted-foreground mb-6 text-center max-w-md">
-                                Você ainda não comprou nenhum ingresso. Explore os eventos disponíveis e garanta seu lugar!
+                                {Object.values(filters).some(Boolean)
+                                    ? "Tente ajustar seus filtros para encontrar o que procura."
+                                    : "Você ainda não comprou nenhum ingresso. Explore os eventos disponíveis e garanta seu lugar!"}
                             </p>
-                            <Button asChild>
-                                <Link href="/events">Explorar Eventos</Link>
-                            </Button>
+                            {!Object.values(filters).some(Boolean) && (
+                                <Button asChild>
+                                    <Link href="/events">Explorar Eventos</Link>
+                                </Button>
+                            )}
                         </div>
                     ) : (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {tickets.map((ticket) => (
                                 <div key={ticket.id} className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:shadow-lg hover:border-primary/50 flex flex-col">
                                     <div className="aspect-[2/1] w-full bg-muted relative overflow-hidden">
-                                        <div className="absolute inset-0 flex items-center justify-center bg-secondary text-muted-foreground">
+                                        <div className="absolute inset-0 flex items-center justify-center bg-secondary text-muted-foreground px-4 text-center text-sm">
                                             {ticket.event.title}
                                         </div>
                                         <div className="absolute top-2 right-2 bg-black/60 backdrop-blur-sm text-white text-xs px-2 py-1 rounded-full border border-white/10">

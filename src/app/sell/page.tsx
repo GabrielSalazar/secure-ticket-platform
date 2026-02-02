@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { AlertCircle, CheckCircle2 } from "lucide-react"
+import { AlertCircle, CheckCircle2, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -23,6 +23,7 @@ export default function SellPage() {
     const [submitting, setSubmitting] = useState(false)
     const [error, setError] = useState("")
     const [success, setSuccess] = useState(false)
+    const [suggestedPrice, setSuggestedPrice] = useState<{ avg: number, min: number, count: number } | null>(null)
 
     const router = useRouter()
     const supabase = createClient()
@@ -34,7 +35,6 @@ export default function SellPage() {
                 router.push("/login?redirect=/sell")
             } else {
                 setUser(user)
-                setLoading(false)
             }
         })
 
@@ -43,7 +43,35 @@ export default function SellPage() {
             .then(res => res.json())
             .then(data => setEvents(data))
             .catch(err => console.error('Error fetching events:', err))
+            .finally(() => setLoading(false))
     }, [router, supabase.auth])
+
+    useEffect(() => {
+        if (!selectedEventId) {
+            setSuggestedPrice(null)
+            return
+        }
+
+        const fetchPriceInfo = async () => {
+            try {
+                const res = await fetch(`/api/tickets?eventId=${selectedEventId}`)
+                const tickets = await res.json()
+
+                if (tickets && tickets.length > 0) {
+                    const prices = tickets.map((t: any) => t.price)
+                    const avg = prices.reduce((a: number, b: number) => a + b, 0) / prices.length
+                    const min = Math.min(...prices)
+                    setSuggestedPrice({ avg, min, count: tickets.length })
+                } else {
+                    setSuggestedPrice(null)
+                }
+            } catch (err) {
+                console.error('Error fetching price info:', err)
+            }
+        }
+
+        fetchPriceInfo()
+    }, [selectedEventId])
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -199,7 +227,17 @@ export default function SellPage() {
                             </h2>
                             <div className="grid md:grid-cols-2 gap-6">
                                 <div className="space-y-2 md:col-span-2">
-                                    <Label htmlFor="selling-price">Preço de Venda (R$) *</Label>
+                                    <div className="flex justify-between items-center">
+                                        <Label htmlFor="selling-price">Preço de Venda (R$) *</Label>
+                                        {suggestedPrice && (
+                                            <div className="text-[10px] md:text-xs text-muted-foreground flex items-center gap-1">
+                                                <TrendingUp className="h-3 w-3 text-emerald-500" />
+                                                <span>Média do mercado: <strong>R$ {suggestedPrice.avg.toFixed(2)}</strong></span>
+                                                <span className="hidden md:inline">•</span>
+                                                <span className="hidden md:inline">Mínimo: R$ {suggestedPrice.min.toFixed(2)}</span>
+                                            </div>
+                                        )}
+                                    </div>
                                     <Input
                                         id="selling-price"
                                         type="number"
@@ -210,6 +248,11 @@ export default function SellPage() {
                                         required
                                         disabled={submitting}
                                     />
+                                    {suggestedPrice && suggestedPrice.count > 0 && (
+                                        <p className="text-[10px] text-muted-foreground">
+                                            Baseado em {suggestedPrice.count} {suggestedPrice.count === 1 ? 'ingresso anunciado' : 'ingressos anunciados'} para este evento.
+                                        </p>
+                                    )}
                                 </div>
                                 <div className="space-y-2">
                                     <Label htmlFor="section">Setor / Seção</Label>
