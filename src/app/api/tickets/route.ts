@@ -181,24 +181,56 @@ export async function POST(request: Request) {
         return NextResponse.json(ticket, { status: 201 })
     } catch (error: any) {
         console.error('Error creating ticket:', error)
+        console.error('Error stack:', error.stack)
         console.error('Error details:', {
             message: error.message,
             code: error.code,
             meta: error.meta,
+            name: error.name,
         })
 
         // Provide more specific error messages
         if (error.code === 'P2003') {
             const field = error.meta?.field_name || 'unknown'
-            console.error('Foreign key constraint failed on:', field)
+            const target = error.meta?.target || []
+            console.error('Foreign key constraint failed on:', field, 'target:', target)
+
+            if (field.includes('event') || target.includes('eventId')) {
+                return NextResponse.json(
+                    { error: 'Evento não encontrado. Por favor, selecione um evento válido.' },
+                    { status: 400 }
+                )
+            }
+
+            if (field.includes('seller') || target.includes('sellerId')) {
+                return NextResponse.json(
+                    { error: 'Usuário não encontrado. Por favor, faça logout e login novamente.' },
+                    { status: 400 }
+                )
+            }
+
             return NextResponse.json(
-                { error: `Invalid ${field.includes('event') ? 'event' : 'user'} ID` },
+                { error: `Erro de validação: ${field}` },
                 { status: 400 }
             )
         }
 
+        if (error.code === 'P2002') {
+            return NextResponse.json(
+                { error: 'Já existe um ingresso idêntico cadastrado.' },
+                { status: 409 }
+            )
+        }
+
+        // Return detailed error for debugging
         return NextResponse.json(
-            { error: `Failed to create ticket: ${error.message || 'Unknown error'}` },
+            {
+                error: `Erro ao criar ingresso: ${error.message}`,
+                details: process.env.NODE_ENV === 'development' ? {
+                    code: error.code,
+                    meta: error.meta,
+                } : undefined
+            },
             { status: 500 }
         )
     }
