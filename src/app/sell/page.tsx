@@ -79,6 +79,8 @@ export default function SellPage() {
                 return
             }
 
+            const createdTicket = await response.json()
+
             setSuccess(true)
             // Reset form
             setSelectedEventId("")
@@ -89,7 +91,7 @@ export default function SellPage() {
 
             // Redirect to event page after 2 seconds
             setTimeout(() => {
-                router.push(`/events/${selectedEventId}`)
+                router.push(`/events/${createdTicket.eventId}`)
             }, 2000)
         } catch (err) {
             setError("Ocorreu um erro ao publicar o ingresso")

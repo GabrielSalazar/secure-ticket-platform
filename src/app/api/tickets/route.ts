@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { createClient } from '@/lib/supabase/server'
 
 export async function GET(request: Request) {
     try {
@@ -43,7 +44,13 @@ export async function GET(request: Request) {
             },
         })
 
-        return NextResponse.json(tickets)
+        // Add eventId to each ticket for easier access
+        const ticketsWithEventId = tickets.map((ticket: any) => ({
+            ...ticket,
+            eventId: ticket.event?.id || ticket.eventId,
+        }))
+
+        return NextResponse.json(ticketsWithEventId)
     } catch (error) {
         console.error('Error fetching tickets:', error)
         return NextResponse.json(
@@ -55,15 +62,45 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
     try {
+        const supabase = await createClient()
+
+        // Get authenticated user
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+
+        if (!authUser) {
+            return NextResponse.json(
+                { error: 'Unauthorized - Please login' },
+                { status: 401 }
+            )
+        }
+
         const body = await request.json()
-        const { price, section, row, seat, eventId, sellerId } = body
+        const { price, section, row, seat, eventId } = body
 
         // Validate required fields
-        if (!price || !eventId || !sellerId) {
+        if (!price || !eventId) {
             return NextResponse.json(
-                { error: 'Missing required fields: price, eventId, sellerId' },
+                { error: 'Missing required fields: price, eventId' },
                 { status: 400 }
             )
+        }
+
+        // Ensure user exists in database
+        let dbUser = await prisma.user.findUnique({
+            where: { id: authUser.id },
+        })
+
+        if (!dbUser) {
+            // Create user if doesn't exist
+            dbUser = await prisma.user.create({
+                data: {
+                    id: authUser.id,
+                    email: authUser.email!,
+                    name: authUser.user_metadata?.name || null,
+                    password: '',
+                    role: 'BUYER',
+                },
+            })
         }
 
         const ticket = await prisma.ticket.create({
@@ -73,7 +110,7 @@ export async function POST(request: Request) {
                 row: row || null,
                 seat: seat || null,
                 eventId,
-                sellerId,
+                sellerId: authUser.id,
                 status: 'AVAILABLE',
             },
             include: {
