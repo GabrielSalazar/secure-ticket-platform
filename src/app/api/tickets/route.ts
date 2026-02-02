@@ -112,8 +112,7 @@ export async function POST(request: Request) {
         const dbUser = await prisma.user.upsert({
             where: { id: authUser.id },
             update: {
-                // Update email and name if they changed
-                email: authUser.email!,
+                // Only update name, not email (email is unique and might conflict)
                 name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
             },
             create: {
