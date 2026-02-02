@@ -16,6 +16,46 @@ export async function POST(request: NextRequest) {
             )
         }
 
+        // Verify user exists in database, create if not
+        let dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+        })
+
+        if (!dbUser) {
+            console.log('User not found in database, attempting to create...')
+            try {
+                // Create user with Supabase ID
+                dbUser = await prisma.user.create({
+                    data: {
+                        id: user.id,
+                        email: user.email!,
+                        name: user.user_metadata?.name || user.email?.split('@')[0] || 'User',
+                        password: '', // Empty password since we use Supabase auth
+                        role: 'BUYER',
+                    }
+                })
+                console.log('User created successfully:', dbUser.id)
+            } catch (createError: any) {
+                // If user creation fails due to unique constraint (user already exists with this email)
+                if (createError.code === 'P2002') {
+                    console.log('User already exists, trying to find by email...')
+                    // Try to find by email
+                    const existingUser = await prisma.user.findUnique({
+                        where: { email: user.email! }
+                    })
+
+                    if (existingUser) {
+                        console.log('Found existing user by email, using it')
+                        dbUser = existingUser
+                    } else {
+                        throw new Error('Não foi possível criar ou encontrar usuário. Por favor, faça logout e login novamente.')
+                    }
+                } else {
+                    throw createError
+                }
+            }
+        }
+
         // Get request body
         const body = await request.json()
         const { ticketId } = body
@@ -30,10 +70,6 @@ export async function POST(request: NextRequest) {
         // Get ticket details
         const ticket = await prisma.ticket.findUnique({
             where: { id: ticketId },
-            include: {
-                event: true,
-                seller: true,
-            },
         })
 
         if (!ticket) {
@@ -65,7 +101,7 @@ export async function POST(request: NextRequest) {
                 amount: ticket.price,
                 status: 'PENDING',
                 ticketId: ticket.id,
-                buyerId: user.id,
+                buyerId: dbUser.id, // Use validated dbUser.id
                 sellerId: ticket.sellerId,
             },
             include: {
@@ -96,10 +132,19 @@ export async function POST(request: NextRequest) {
             transaction,
             message: 'Transação criada. Prossiga para o pagamento.',
         })
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error purchasing ticket:', error)
+        console.error('Error details:', {
+            message: error.message,
+            code: error.code,
+            meta: error.meta,
+        })
+
         return NextResponse.json(
-            { error: 'Erro ao processar compra' },
+            {
+                error: error.message || 'Erro ao processar compra',
+                details: process.env.NODE_ENV === 'development' ? error : undefined
+            },
             { status: 500 }
         )
     }
