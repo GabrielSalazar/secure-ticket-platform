@@ -16,20 +16,48 @@ export async function POST() {
             )
         }
 
-        // Upsert user in database
-        const user = await prisma.user.upsert({
-            where: { id: authUser.id },
-            update: {
-                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-            },
-            create: {
-                id: authUser.id,
-                email: authUser.email!,
-                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-                password: '',
-                role: 'BUYER',
-            },
+        console.log('Syncing user:', { id: authUser.id, email: authUser.email })
+
+        // First, check if user exists by email (more reliable)
+        let user = await prisma.user.findUnique({
+            where: { email: authUser.email! }
         })
+
+        if (user) {
+            console.log('Found existing user by email:', user.id)
+            // If the IDs don't match, we need to update the Supabase user ID in our database
+            if (user.id !== authUser.id) {
+                console.log('User ID mismatch - updating to Supabase ID')
+                // Delete the old user and create new one with correct ID
+                await prisma.user.delete({
+                    where: { id: user.id }
+                })
+
+                user = await prisma.user.create({
+                    data: {
+                        id: authUser.id,
+                        email: authUser.email!,
+                        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                        password: '',
+                        role: 'BUYER',
+                    }
+                })
+                console.log('Created new user with Supabase ID:', user.id)
+            }
+        } else {
+            // User doesn't exist, create it
+            console.log('Creating new user')
+            user = await prisma.user.create({
+                data: {
+                    id: authUser.id,
+                    email: authUser.email!,
+                    name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                    password: '',
+                    role: 'BUYER',
+                }
+            })
+            console.log('User created:', user.id)
+        }
 
         return NextResponse.json({
             success: true,
@@ -42,35 +70,8 @@ export async function POST() {
     } catch (error: any) {
         console.error('Error syncing user:', error)
 
-        // If unique constraint error on email, try to find by email
-        if (error.code === 'P2002') {
-            try {
-                const supabase = await createClient()
-                const { data: { user: authUser } } = await supabase.auth.getUser()
-
-                if (authUser?.email) {
-                    const existingUser = await prisma.user.findUnique({
-                        where: { email: authUser.email }
-                    })
-
-                    if (existingUser) {
-                        return NextResponse.json({
-                            success: true,
-                            user: {
-                                id: existingUser.id,
-                                email: existingUser.email,
-                                name: existingUser.name,
-                            }
-                        })
-                    }
-                }
-            } catch (retryError) {
-                console.error('Retry error:', retryError)
-            }
-        }
-
         return NextResponse.json(
-            { error: 'Failed to sync user' },
+            { error: `Failed to sync user: ${error.message}` },
             { status: 500 }
         )
     }
