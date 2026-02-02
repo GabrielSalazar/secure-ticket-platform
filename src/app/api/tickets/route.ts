@@ -5,15 +5,20 @@ export async function GET(request: Request) {
     try {
         const { searchParams } = new URL(request.url)
         const eventId = searchParams.get('eventId')
+        const sellerId = searchParams.get('sellerId')
 
-        const where = eventId
-            ? {
-                eventId,
-                status: 'AVAILABLE' as const,
-            }
-            : {
-                status: 'AVAILABLE' as const,
-            }
+        let where: any = {}
+
+        if (eventId) {
+            where.eventId = eventId
+        }
+
+        if (sellerId) {
+            where.sellerId = sellerId
+        } else {
+            // Only show available tickets if not filtering by seller
+            where.status = 'AVAILABLE'
+        }
 
         const tickets = await prisma.ticket.findMany({
             where,
