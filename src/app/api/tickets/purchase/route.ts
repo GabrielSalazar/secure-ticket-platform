@@ -59,53 +59,42 @@ export async function POST(request: NextRequest) {
             )
         }
 
-        // Create transaction and update ticket in a transaction
-        const transaction = await prisma.$transaction(async (tx) => {
-            // Update ticket status
-            await tx.ticket.update({
-                where: { id: ticketId },
-                data: { status: 'SOLD' },
-            })
-
-            // Create transaction record
-            const newTransaction = await tx.transaction.create({
-                data: {
-                    amount: ticket.price,
-                    status: 'PENDING',
-                    ticketId: ticket.id,
-                    buyerId: user.id,
-                    sellerId: ticket.sellerId,
-                },
-                include: {
-                    ticket: {
-                        include: {
-                            event: true,
-                        },
-                    },
-                    buyer: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                        },
-                    },
-                    seller: {
-                        select: {
-                            id: true,
-                            name: true,
-                            email: true,
-                        },
+        // Create transaction (ticket stays AVAILABLE until payment is confirmed)
+        const transaction = await prisma.transaction.create({
+            data: {
+                amount: ticket.price,
+                status: 'PENDING',
+                ticketId: ticket.id,
+                buyerId: user.id,
+                sellerId: ticket.sellerId,
+            },
+            include: {
+                ticket: {
+                    include: {
+                        event: true,
                     },
                 },
-            })
-
-            return newTransaction
+                buyer: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+                seller: {
+                    select: {
+                        id: true,
+                        name: true,
+                        email: true,
+                    },
+                },
+            },
         })
 
         return NextResponse.json({
             success: true,
             transaction,
-            message: 'Ingresso comprado com sucesso!',
+            message: 'Transação criada. Prossiga para o pagamento.',
         })
     } catch (error) {
         console.error('Error purchasing ticket:', error)
