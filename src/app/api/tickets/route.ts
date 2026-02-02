@@ -108,21 +108,40 @@ export async function POST(request: Request) {
             )
         }
 
-        // Ensure user exists in database (use upsert to avoid unique constraint errors)
-        const dbUser = await prisma.user.upsert({
+        // Ensure user exists in database
+        let dbUser = await prisma.user.findUnique({
             where: { id: authUser.id },
-            update: {
-                // Only update name, not email (email is unique and might conflict)
-                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-            },
-            create: {
-                id: authUser.id,
-                email: authUser.email!,
-                name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
-                password: '',
-                role: 'BUYER',
-            },
         })
+
+        if (!dbUser) {
+            try {
+                // Try to create user
+                dbUser = await prisma.user.create({
+                    data: {
+                        id: authUser.id,
+                        email: authUser.email!,
+                        name: authUser.user_metadata?.name || authUser.email?.split('@')[0] || 'User',
+                        password: '',
+                        role: 'BUYER',
+                    },
+                })
+                console.log('User created successfully:', dbUser.id)
+            } catch (createError: any) {
+                // If user creation fails due to unique constraint, try to find by email
+                if (createError.code === 'P2002') {
+                    console.log('User with this email already exists, fetching existing user')
+                    dbUser = await prisma.user.findUnique({
+                        where: { email: authUser.email! },
+                    })
+
+                    if (!dbUser) {
+                        throw new Error('Failed to create or find user')
+                    }
+                } else {
+                    throw createError
+                }
+            }
+        }
 
         console.log('User ensured in database:', dbUser.id)
 
