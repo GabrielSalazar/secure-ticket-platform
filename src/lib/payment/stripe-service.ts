@@ -43,8 +43,7 @@ export async function createCheckoutSession(
     const stripe = getStripe()
     try {
         const session = await stripe.checkout.sessions.create({
-            payment_method_types: ['card', 'pix'],
-            // Note: For PIX to work, it must be enabled in the Stripe Dashboard settings under Payment Methods.
+            payment_method_types: ['card'],
             line_items: [
                 {
                     price_data: {
