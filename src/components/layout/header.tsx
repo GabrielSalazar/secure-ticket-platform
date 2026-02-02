@@ -1,8 +1,48 @@
+"use client"
+
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Ticket, Search, User } from "lucide-react"
+import { Ticket, Search, User, LogOut } from "lucide-react"
+import { useEffect, useState } from "react"
+import { createClient } from "@/lib/supabase/client"
+import { User as SupabaseUser } from "@supabase/supabase-js"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuLabel,
+    DropdownMenuSeparator,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { useRouter } from "next/navigation"
 
 export function Header() {
+    const [user, setUser] = useState<SupabaseUser | null>(null)
+    const [loading, setLoading] = useState(true)
+    const supabase = createClient()
+    const router = useRouter()
+
+    useEffect(() => {
+        // Get initial user
+        supabase.auth.getUser().then(({ data: { user } }) => {
+            setUser(user)
+            setLoading(false)
+        })
+
+        // Listen for auth changes
+        const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+            setUser(session?.user ?? null)
+        })
+
+        return () => subscription.unsubscribe()
+    }, [supabase.auth])
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut()
+        router.push("/")
+        router.refresh()
+    }
+
     return (
         <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/95 backdrop-blur-sm supports-backdrop-filter:bg-background/60">
             <div className="container flex h-16 max-w-7xl items-center justify-between px-4 md:px-6">
@@ -28,17 +68,51 @@ export function Header() {
                         <Search className="h-4 w-4" />
                         <span className="sr-only">Buscar</span>
                     </Button>
-                    <Button size="sm" variant="ghost" className="gap-2" asChild>
-                        <Link href="/login">
-                            <User className="h-4 w-4" />
-                            <span>Entrar</span>
-                        </Link>
-                    </Button>
-                    <Button size="sm" className="hidden sm:flex" asChild>
-                        <Link href="/register">
-                            Criar Conta
-                        </Link>
-                    </Button>
+
+                    {loading ? (
+                        <div className="h-9 w-20 animate-pulse bg-muted rounded" />
+                    ) : user ? (
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button size="sm" variant="ghost" className="gap-2">
+                                    <User className="h-4 w-4" />
+                                    <span className="hidden sm:inline">{user.email?.split('@')[0]}</span>
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="w-56">
+                                <DropdownMenuLabel>Minha Conta</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem asChild>
+                                    <Link href="/dashboard">Dashboard</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/my-tickets">Meus Ingressos</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem asChild>
+                                    <Link href="/my-sales">Minhas Vendas</Link>
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
+                                    <LogOut className="h-4 w-4 mr-2" />
+                                    Sair
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+                    ) : (
+                        <>
+                            <Button size="sm" variant="ghost" className="gap-2" asChild>
+                                <Link href="/login">
+                                    <User className="h-4 w-4" />
+                                    <span>Entrar</span>
+                                </Link>
+                            </Button>
+                            <Button size="sm" className="hidden sm:flex" asChild>
+                                <Link href="/register">
+                                    Criar Conta
+                                </Link>
+                            </Button>
+                        </>
+                    )}
                 </div>
             </div>
         </header>

@@ -1,11 +1,46 @@
+"use client"
+
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Header } from "@/components/layout/header"
 import Link from "next/link"
-import { ArrowLeft, Github, Mail } from "lucide-react"
+import { useState } from "react"
+import { useRouter } from "next/navigation"
+import { createClient } from "@/lib/supabase/client"
 
 export default function LoginPage() {
+    const [email, setEmail] = useState("")
+    const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
+    const [loading, setLoading] = useState(false)
+    const router = useRouter()
+    const supabase = createClient()
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError("")
+        setLoading(true)
+
+        try {
+            const { error } = await supabase.auth.signInWithPassword({
+                email,
+                password,
+            })
+
+            if (error) {
+                setError(error.message)
+            } else {
+                router.push("/")
+                router.refresh()
+            }
+        } catch (err) {
+            setError("Ocorreu um erro ao fazer login")
+        } finally {
+            setLoading(false)
+        }
+    }
+
     return (
         <div className="min-h-screen flex flex-col">
             <Header />
@@ -19,10 +54,23 @@ export default function LoginPage() {
                     </div>
 
                     <div className="grid gap-6">
-                        <form className="space-y-4">
+                        <form className="space-y-4" onSubmit={handleSubmit}>
+                            {error && (
+                                <div className="p-3 text-sm text-red-500 bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-900 rounded-md">
+                                    {error}
+                                </div>
+                            )}
                             <div className="space-y-2">
                                 <Label htmlFor="email">Email</Label>
-                                <Input id="email" placeholder="nome@exemplo.com" type="email" required />
+                                <Input
+                                    id="email"
+                                    placeholder="nome@exemplo.com"
+                                    type="email"
+                                    required
+                                    value={email}
+                                    onChange={(e) => setEmail(e.target.value)}
+                                    disabled={loading}
+                                />
                             </div>
                             <div className="space-y-2">
                                 <div className="flex items-center justify-between">
@@ -31,32 +79,19 @@ export default function LoginPage() {
                                         Esqueceu a senha?
                                     </Link>
                                 </div>
-                                <Input id="password" type="password" required />
+                                <Input
+                                    id="password"
+                                    type="password"
+                                    required
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    disabled={loading}
+                                />
                             </div>
-                            <Button className="w-full" type="submit">
-                                Entrar
+                            <Button className="w-full" type="submit" disabled={loading}>
+                                {loading ? "Entrando..." : "Entrar"}
                             </Button>
                         </form>
-
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-card px-2 text-muted-foreground">
-                                    Ou continue com
-                                </span>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                            <Button variant="outline" className="w-full">
-                                <Github className="mr-2 h-4 w-4" /> Github
-                            </Button>
-                            <Button variant="outline" className="w-full">
-                                <Mail className="mr-2 h-4 w-4" /> Google
-                            </Button>
-                        </div>
                     </div>
 
                     <p className="text-center text-sm text-muted-foreground">
