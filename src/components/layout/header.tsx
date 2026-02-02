@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Ticket, Search, User, LogOut, Menu } from "lucide-react"
+import { Ticket, Search, User, LogOut, Menu, Ticket as TicketIcon, DollarSign } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { User as SupabaseUser } from "@supabase/supabase-js"
@@ -146,6 +146,19 @@ export function Header() {
                                         <Search className="h-5 w-5" />
                                         Como Funciona
                                     </Link>
+                                    {user && (
+                                        <>
+                                            <div className="h-px bg-border my-2" />
+                                            <Link href="/my-tickets" className="flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
+                                                <TicketIcon className="h-5 w-5" />
+                                                Meus Ingressos
+                                            </Link>
+                                            <Link href="/my-sales" className="flex items-center gap-2 text-lg font-medium hover:text-primary transition-colors">
+                                                <DollarSign className="h-5 w-5" />
+                                                Minhas Vendas
+                                            </Link>
+                                        </>
+                                    )}
                                 </nav>
                                 {!user && (
                                     <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
