@@ -164,7 +164,7 @@ export async function POST(request: Request) {
                 row: row || null,
                 seat: seat || null,
                 eventId,
-                sellerId: authUser.id,
+                sellerId: dbUser.id,
                 status: 'AVAILABLE',
             },
             include: {
