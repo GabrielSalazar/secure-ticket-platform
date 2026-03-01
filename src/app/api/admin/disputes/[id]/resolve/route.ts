@@ -1,11 +1,12 @@
 import { NextResponse } from "next/server"
 import { createClient } from "@/lib/supabase/server"
-import { prisma } from "@/lib/prisma"
-import { stripe } from "@/lib/payment/stripe-service"
+import { prisma } from "@/lib/db"
+import { getStripe } from "@/lib/payment/stripe-service"
 
-export async function POST(request: Request, { params }: { params: { id: string } }) {
+export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
     try {
-        const supabase = createClient()
+        const { id: disputeId } = await params
+        const supabase = await createClient()
         // In a real app, we would verify ADMIN role here.
         // const { data: { user } } = await supabase.auth.getUser()
         // if (!user || user.role !== 'ADMIN') ...
@@ -14,7 +15,6 @@ export async function POST(request: Request, { params }: { params: { id: string 
         // but ideally we should restrict this.
 
         const { decision } = await request.json() // 'REFUND' or 'REJECT'
-        const disputeId = params.id
 
         const dispute = await prisma.dispute.findUnique({
             where: { id: disputeId },
@@ -51,6 +51,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
                     // If we only have Session ID, we need to retrieve session to get PI
 
                     let paymentIntentId = transaction.stripePaymentIntentId
+
+                    const stripe = getStripe()
 
                     if (!paymentIntentId && transaction.stripeSessionId) {
                         const session = await stripe.checkout.sessions.retrieve(transaction.stripeSessionId)
