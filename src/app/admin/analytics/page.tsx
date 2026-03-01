@@ -161,7 +161,7 @@ export default function AnalyticsPage() {
                                         />
                                         <Tooltip
                                             contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-                                            formatter={(value: number) => [(value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 'Faturamento']}
+                                            formatter={(value: any) => [(value / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' }), 'Faturamento']}
                                         />
                                         <Line type="monotone" dataKey="revenue" stroke="#2563eb" strokeWidth={3} dot={{ r: 4 }} activeDot={{ r: 6 }} />
                                     </LineChart>
