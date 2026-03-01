@@ -7,7 +7,7 @@ import { Footer } from "@/components/layout/footer"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Ticket, DollarSign, Calendar, TrendingUp, RefreshCcw } from "lucide-react"
+import { Ticket, DollarSign, Calendar, TrendingUp } from "lucide-react"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
@@ -20,37 +20,10 @@ export default function DashboardPage() {
     const [loading, setLoading] = useState(true)
     const [mySales, setMySales] = useState<any[]>([])
     const [myPurchases, setMyPurchases] = useState<any[]>([])
-    const [syncing, setSyncing] = useState(false)
     const { toast } = useToast()
 
     const router = useRouter()
     const supabase = createClient()
-
-    const handleSync = async () => {
-        setSyncing(true)
-        try {
-            const response = await fetch('/api/admin/events/sync', { method: 'POST' })
-            const data = await response.json()
-
-            if (response.ok) {
-                toast({
-                    title: "Sincronização concluída",
-                    description: `Eventos importados: TM (${data.stats.ticketmaster.imported}), EB (${data.stats.eventbrite.imported})`,
-                })
-                router.refresh()
-            } else {
-                throw new Error(data.error || "Erro ao sincronizar")
-            }
-        } catch (err: any) {
-            toast({
-                variant: "destructive",
-                title: "Falha na sincronização",
-                description: err.message,
-            })
-        } finally {
-            setSyncing(false)
-        }
-    }
 
     useEffect(() => {
         // Check authentication
@@ -121,10 +94,6 @@ export default function DashboardPage() {
                             <p className="text-muted-foreground">Bem-vindo de volta, {user?.email?.split('@')[0]}!</p>
                         </div>
                         <div className="flex flex-wrap gap-2">
-                            <Button variant="outline" onClick={handleSync} disabled={syncing}>
-                                <RefreshCcw className={`h-4 w-4 mr-2 ${syncing ? 'animate-spin' : ''}`} />
-                                {syncing ? 'Sincronizando...' : 'Sincronizar Eventos'}
-                            </Button>
                             <Button asChild variant="outline">
                                 <Link href="/events">Explorar Eventos</Link>
                             </Button>

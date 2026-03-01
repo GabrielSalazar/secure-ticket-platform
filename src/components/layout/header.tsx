@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import { Ticket, Search, User, LogOut, Menu, Ticket as TicketIcon, DollarSign } from "lucide-react"
+import { Ticket, Search, User, LogOut, Menu, Ticket as TicketIcon, DollarSign, Server } from "lucide-react"
 import { useEffect, useState } from "react"
 import { createClient } from "@/lib/supabase/client"
 import { User as SupabaseUser } from "@supabase/supabase-js"
@@ -120,6 +120,9 @@ export function Header() {
                                         <DropdownMenuItem asChild>
                                             <Link href="/admin/analytics">Visualizar Analytics</Link>
                                         </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/admin/integrations">Integrações de API</Link>
+                                        </DropdownMenuItem>
                                     </>
                                 )}
                                 <DropdownMenuSeparator />
@@ -182,10 +185,16 @@ export function Header() {
                                                 Minhas Vendas
                                             </Link>
                                             {isAdmin && (
-                                                <Link href="/admin/analytics" className="flex items-center gap-2 text-lg font-medium text-blue-600 hover:text-blue-700 transition-colors">
-                                                    <DollarSign className="h-5 w-5" />
-                                                    Painel Analytics (Admin)
-                                                </Link>
+                                                <>
+                                                    <Link href="/admin/analytics" className="flex items-center gap-2 text-lg font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                                                        <DollarSign className="h-5 w-5" />
+                                                        Painel Analytics (Admin)
+                                                    </Link>
+                                                    <Link href="/admin/integrations" className="flex items-center gap-2 text-lg font-medium text-purple-600 hover:text-purple-700 transition-colors">
+                                                        <Server className="h-5 w-5" />
+                                                        Integrações Web (Admin)
+                                                    </Link>
+                                                </>
                                             )}
                                         </>
                                     )}

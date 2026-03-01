@@ -7,12 +7,15 @@ export async function syncEvents() {
     const stats = {
         ticketmaster: { imported: 0, skipped: 0, errors: 0 },
         eventbrite: { imported: 0, skipped: 0, errors: 0 },
+        citiesProcessed: 0,
     };
 
+    // Major Brazilian Cities to fetch events for
+    const targetCities = ["Sao Paulo", "Rio de Janeiro", "Belo Horizonte", "Curitiba", "Brasilia"];
+
     // 1. Get a default organizer (Admin)
-    // In a real app, this would be a specific system user
     const adminUser = await prisma.user.findFirst({
-        where: { email: { contains: "admin" } }
+        where: { role: 'ADMIN' }
     }) || await prisma.user.findFirst();
 
     if (!adminUser) {
@@ -21,52 +24,65 @@ export async function syncEvents() {
 
     // 2. Sync Ticketmaster
     console.log("Syncing Ticketmaster events...");
-    const tmEvents = await fetchTicketmasterEvents();
-    for (const tmEvent of tmEvents) {
+    for (const city of targetCities) {
         try {
-            const mapped = mapTicketmasterToPrisma(tmEvent);
+            const tmEvents = await fetchTicketmasterEvents(city);
+            for (const tmEvent of tmEvents) {
+                try {
+                    const mapped = mapTicketmasterToPrisma(tmEvent);
 
-            await prisma.event.upsert({
-                where: { externalId: mapped.externalId },
-                update: {
-                    ...mapped,
-                    organizerId: adminUser.id,
-                },
-                create: {
-                    ...mapped,
-                    organizerId: adminUser.id,
-                },
-            });
-            stats.ticketmaster.imported++;
-        } catch (err) {
-            console.error(`Failed to sync Ticketmaster event ${tmEvent.id}:`, err);
-            stats.ticketmaster.errors++;
+                    await prisma.event.upsert({
+                        where: { externalId: mapped.externalId },
+                        update: {
+                            ...mapped,
+                            organizerId: adminUser.id,
+                        },
+                        create: {
+                            ...mapped,
+                            organizerId: adminUser.id,
+                        },
+                    });
+                    stats.ticketmaster.imported++;
+                } catch (err) {
+                    console.error(`Failed to sync Ticketmaster event ${tmEvent.id}:`, err);
+                    stats.ticketmaster.errors++;
+                }
+            }
+        } catch (cityErr) {
+            console.error(`Error fetching Ticketmaster events for ${city}:`, cityErr);
         }
     }
 
     // 3. Sync Eventbrite
     console.log("Syncing Eventbrite events...");
-    const ebEvents = await fetchEventbriteEvents();
-    for (const ebEvent of ebEvents) {
+    for (const city of targetCities) {
         try {
-            const mapped = mapEventbriteToPrisma(ebEvent);
+            const ebEvents = await fetchEventbriteEvents(city);
+            for (const ebEvent of ebEvents) {
+                try {
+                    const mapped = mapEventbriteToPrisma(ebEvent);
 
-            await prisma.event.upsert({
-                where: { externalId: mapped.externalId },
-                update: {
-                    ...mapped,
-                    organizerId: adminUser.id,
-                },
-                create: {
-                    ...mapped,
-                    organizerId: adminUser.id,
-                },
-            });
-            stats.eventbrite.imported++;
-        } catch (err) {
-            console.error(`Failed to sync Eventbrite event ${ebEvent.id}:`, err);
-            stats.eventbrite.errors++;
+                    await prisma.event.upsert({
+                        where: { externalId: mapped.externalId },
+                        update: {
+                            ...mapped,
+                            organizerId: adminUser.id,
+                        },
+                        create: {
+                            ...mapped,
+                            organizerId: adminUser.id,
+                        },
+                    });
+                    stats.eventbrite.imported++;
+                } catch (err) {
+                    console.error(`Failed to sync Eventbrite event ${ebEvent.id}:`, err);
+                    stats.eventbrite.errors++;
+                }
+            }
+        } catch (cityErr) {
+            console.error(`Error fetching Eventbrite events for ${city}:`, cityErr);
         }
+        stats.citiesProcessed++;
     }
 
     return stats;

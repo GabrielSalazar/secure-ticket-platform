@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { syncEvents } from "@/lib/events/sync-service";
+import { prisma } from "@/lib/db";
 
 export async function POST(request: NextRequest) {
     try {
@@ -14,8 +15,17 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // In a real application, we would check for an 'ADMIN' role here.
-        // For this prototype, any authenticated user can trigger a sync.
+        const dbUser = await prisma.user.findUnique({
+            where: { id: user.id },
+            select: { role: true }
+        });
+
+        if (!dbUser || dbUser.role !== 'ADMIN') {
+            return NextResponse.json(
+                { error: "Acesso negado. Apenas administradores podem sincronizar eventos." },
+                { status: 403 }
+            );
+        }
 
         const stats = await syncEvents();
 
