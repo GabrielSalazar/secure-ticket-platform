@@ -25,14 +25,26 @@ import { useRouter } from "next/navigation"
 
 export function Header() {
     const [user, setUser] = useState<SupabaseUser | null>(null)
+    const [isAdmin, setIsAdmin] = useState(false)
     const [loading, setLoading] = useState(true)
     const supabase = createClient()
     const router = useRouter()
 
     useEffect(() => {
         // Get initial user
-        supabase.auth.getUser().then(({ data: { user } }) => {
+        supabase.auth.getUser().then(async ({ data: { user } }) => {
             setUser(user)
+            if (user) {
+                try {
+                    const res = await fetch(`/api/users/${user.id}`)
+                    if (res.ok) {
+                        const data = await res.json()
+                        setIsAdmin(data.role === 'ADMIN')
+                    }
+                } catch (err) {
+                    console.error('Error fetching role:', err)
+                }
+            }
             setLoading(false)
         })
 
@@ -101,6 +113,15 @@ export function Header() {
                                 <DropdownMenuItem asChild>
                                     <Link href="/my-sales">Minhas Vendas</Link>
                                 </DropdownMenuItem>
+                                {isAdmin && (
+                                    <>
+                                        <DropdownMenuSeparator />
+                                        <DropdownMenuLabel className="text-xs text-muted-foreground">Admin</DropdownMenuLabel>
+                                        <DropdownMenuItem asChild>
+                                            <Link href="/admin/analytics">Visualizar Analytics</Link>
+                                        </DropdownMenuItem>
+                                    </>
+                                )}
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem onClick={handleLogout} className="text-red-600 dark:text-red-400">
                                     <LogOut className="h-4 w-4 mr-2" />
@@ -160,6 +181,12 @@ export function Header() {
                                                 <DollarSign className="h-5 w-5" />
                                                 Minhas Vendas
                                             </Link>
+                                            {isAdmin && (
+                                                <Link href="/admin/analytics" className="flex items-center gap-2 text-lg font-medium text-blue-600 hover:text-blue-700 transition-colors">
+                                                    <DollarSign className="h-5 w-5" />
+                                                    Painel Analytics (Admin)
+                                                </Link>
+                                            )}
                                         </>
                                     )}
                                 </nav>
