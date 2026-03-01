@@ -9,8 +9,9 @@ import { EventCard } from "@/components/events/event-card"
 import { EventFilters, FilterValues } from "@/components/events/event-filters"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Search, Loader2, SlidersHorizontal } from "lucide-react"
+import { Search, Loader2, SlidersHorizontal, CalendarX } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { EmptyState } from "@/components/shared/empty-state"
 
 export default function EventsPage() {
     const [events, setEvents] = useState<any[]>([])
@@ -130,17 +131,17 @@ export default function EventsPage() {
                     </div>
 
                     {loading ? (
-                        <div className="flex items-center justify-center py-12">
-                            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+                        <div className="flex items-center justify-center py-20">
+                            <Loader2 className="h-10 w-10 animate-spin text-muted-foreground opacity-50" />
                         </div>
                     ) : events.length === 0 ? (
-                        <div className="text-center py-12">
-                            <p className="text-muted-foreground">
-                                {searchQuery || Object.values(filters).some(v => v !== '')
-                                    ? 'Nenhum evento encontrado com os filtros aplicados.'
-                                    : 'Nenhum evento disponível no momento.'}
-                            </p>
-                        </div>
+                        <EmptyState
+                            icon={CalendarX}
+                            title={searchQuery || Object.values(filters).some(v => v !== '') ? "Nenhum evento encontrado" : "Nenhum evento futuro"}
+                            description={searchQuery || Object.values(filters).some(v => v !== '')
+                                ? 'Tente buscar com termos diferentes ou remover alguns filtros.'
+                                : 'No momento não temos eventos agendados. Volte mais tarde!'}
+                        />
                     ) : (
                         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                             {events.map((event: any) => (

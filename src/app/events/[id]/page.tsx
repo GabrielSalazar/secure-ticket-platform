@@ -3,11 +3,12 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
-import { Calendar, MapPin, ShieldCheck, AlertCircle } from "lucide-react"
+import { Calendar, MapPin, ShieldCheck, AlertCircle, Ticket } from "lucide-react"
 import { ShareEvent } from "@/components/events/share-event"
 import { PurchaseButton } from "@/components/events/purchase-button"
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import { EmptyState } from "@/components/shared/empty-state"
 
 interface PageProps {
     params: Promise<{ id: string }>
@@ -94,14 +95,16 @@ export default async function EventPage({ params }: PageProps) {
                         </div>
 
                         {tickets.length === 0 ? (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <p className="text-muted-foreground">Nenhum ingresso disponível no momento.</p>
-                                    <Button variant="secondary" className="mt-4" asChild>
+                            <EmptyState
+                                icon={Ticket}
+                                title="Nenhum ingresso disponível"
+                                description="Nenhum ingresso à venda neste evento no momento."
+                                action={
+                                    <Button variant="secondary" asChild>
                                         <Link href="/sell">Seja o primeiro a vender</Link>
                                     </Button>
-                                </CardContent>
-                            </Card>
+                                }
+                            />
                         ) : (
                             <div className="space-y-3 md:space-y-4">
                                 {tickets.map((ticket: any) => (

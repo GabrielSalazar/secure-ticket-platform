@@ -13,6 +13,7 @@ import { useRouter } from "next/navigation"
 import { createClient } from "@/lib/supabase/client"
 import { useToast } from "@/hooks/use-toast"
 import Link from "next/link"
+import { EmptyState } from "@/components/shared/empty-state"
 
 export default function DashboardPage() {
     const [user, setUser] = useState<any>(null)
@@ -220,18 +221,16 @@ export default function DashboardPage() {
                         </div>
 
                         {mySales.length === 0 ? (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                    <h3 className="font-semibold mb-2">Nenhum ingresso publicado</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        Comece a vender seus ingressos não utilizados agora!
-                                    </p>
+                            <EmptyState
+                                icon={Ticket}
+                                title="Nenhum ingresso publicado"
+                                description="Comece a vender seus ingressos não utilizados agora para faturar com eles!"
+                                action={
                                     <Button asChild>
                                         <Link href="/sell">Publicar Primeiro Ingresso</Link>
                                     </Button>
-                                </CardContent>
-                            </Card>
+                                }
+                            />
                         ) : (
                             <div className="grid gap-4">
                                 {mySales.map((ticket) => (
@@ -282,18 +281,16 @@ export default function DashboardPage() {
                         </div>
 
                         {myPurchases.length === 0 ? (
-                            <Card>
-                                <CardContent className="p-8 text-center">
-                                    <Ticket className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                                    <h3 className="font-semibold mb-2">Nenhum ingresso comprado</h3>
-                                    <p className="text-sm text-muted-foreground mb-4">
-                                        Navegue pelos eventos e compre seus ingressos com segurança!
-                                    </p>
+                            <EmptyState
+                                icon={Ticket}
+                                title="Nenhum ingresso comprado"
+                                description="Navegue pela nossa vitrine de eventos e compre ingressos com total segurança!"
+                                action={
                                     <Button asChild>
                                         <Link href="/events">Explorar Eventos</Link>
                                     </Button>
-                                </CardContent>
-                            </Card>
+                                }
+                            />
                         ) : (
                             <div className="grid gap-4">
                                 {myPurchases.map((transaction) => (

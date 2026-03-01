@@ -9,6 +9,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { ManagementFilters } from "@/components/shared/management-filters";
+import { EmptyState } from "@/components/shared/empty-state";
 
 interface PageProps {
     searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
@@ -46,22 +47,18 @@ export default async function MyTicketsPage({ searchParams }: PageProps) {
                     <ManagementFilters />
 
                     {tickets.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-20 bg-muted/20 rounded-xl border border-dashed border-muted-foreground/25">
-                            <TicketIcon className="h-16 w-16 text-muted-foreground mb-4 opacity-50" />
-                            <h3 className="text-lg font-semibold">
-                                {Object.values(filters).some(Boolean) ? "Nenhum resultado encontrado" : "Nenhum ingresso encontrado"}
-                            </h3>
-                            <p className="text-muted-foreground mb-6 text-center max-w-md">
-                                {Object.values(filters).some(Boolean)
-                                    ? "Tente ajustar seus filtros para encontrar o que procura."
-                                    : "Você ainda não comprou nenhum ingresso. Explore os eventos disponíveis e garanta seu lugar!"}
-                            </p>
-                            {!Object.values(filters).some(Boolean) && (
+                        <EmptyState
+                            icon={TicketIcon}
+                            title={Object.values(filters).some(Boolean) ? "Nenhum resultado encontrado" : "Nenhum ingresso encontrado"}
+                            description={Object.values(filters).some(Boolean)
+                                ? "Tente ajustar seus filtros para encontrar o que procura."
+                                : "Você ainda não comprou nenhum ingresso. Explore os eventos disponíveis e garanta seu lugar!"}
+                            action={!Object.values(filters).some(Boolean) ? (
                                 <Button asChild>
                                     <Link href="/events">Explorar Eventos</Link>
                                 </Button>
-                            )}
-                        </div>
+                            ) : undefined}
+                        />
                     ) : (
                         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                             {tickets.map((ticket) => (
