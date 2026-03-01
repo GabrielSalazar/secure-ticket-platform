@@ -69,6 +69,44 @@ export async function POST(request: NextRequest) {
                 })
 
                 console.log(`Payment completed for transaction ${transactionId}`)
+
+                // Trigger Email Notifications (non-blocking)
+                try {
+                    const fullTransaction = await prisma.transaction.findUnique({
+                        where: { id: transactionId },
+                        include: {
+                            buyer: true,
+                            seller: true,
+                            ticket: {
+                                include: { event: true }
+                            }
+                        }
+                    })
+
+                    if (fullTransaction) {
+                        const { sendPurchaseConfirmation, sendSaleNotification } = await import('@/lib/email')
+
+                        // Notify Buyer
+                        sendPurchaseConfirmation(
+                            fullTransaction.buyer.email,
+                            fullTransaction.buyer.name,
+                            fullTransaction.ticket.event.title,
+                            fullTransaction.ticketId,
+                            fullTransaction.id
+                        )
+
+                        // Notify Seller
+                        sendSaleNotification(
+                            fullTransaction.seller.email,
+                            fullTransaction.seller.name,
+                            fullTransaction.ticket.event.title,
+                            fullTransaction.amount
+                        )
+                    }
+                } catch (emailError) {
+                    console.error('Error triggering confirmation emails:', emailError)
+                }
+
                 break
             }
 
